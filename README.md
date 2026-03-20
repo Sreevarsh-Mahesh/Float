@@ -6,27 +6,27 @@
 
 ## 1. Problem we are solving and niche we are focusing on
 
-[cite_start]India's platform-based delivery partners are the backbone of our fast-paced digital economy[cite: 9]. [cite_start]However, external disruptions such as extreme weather, pollution, and natural disasters can reduce their working hours and cause them to lose 20-30% of their monthly earnings[cite: 10]. [cite_start]Currently, gig workers have no income protection against these uncontrollable events[cite: 11]. [cite_start]When disruptions occur, they bear the full financial loss with no safety net[cite: 12].
+India's platform-based delivery partners are the backbone of our fast-paced digital economy. However, external disruptions such as extreme weather, pollution, and natural disasters can reduce their working hours and cause them to lose 20-30% of their monthly earnings. Currently, gig workers have no income protection against these uncontrollable events. When disruptions occur, they bear the full financial loss with no safety net.
 
-[cite_start]Our primary niche focuses strictly on food delivery partners operating on platforms like Zomato and Swiggy[cite: 82]. 
+Our primary niche focuses strictly on food delivery partners operating on platforms like Zomato and Swiggy. 
 
-[cite_start]**Crucial Scope Definition:** Float is a parametric insurance platform designed exclusively for loss of income[cite: 83]. [cite_start]We strictly exclude coverage for health, life, accidents, or vehicle repairs[cite: 17]. If a flood damages a bike, we do not pay for the repairs; we pay for the wages lost because the partner could not work.
+**Crucial Scope Definition:** Float is a parametric insurance platform designed exclusively for loss of income. We strictly exclude coverage for health, life, accidents, or vehicle repairs. If a flood damages a bike, we do not pay for the repairs; we pay for the wages lost because the partner could not work.
 
 ## 2. How we are solving the problem
 
-[cite_start]We are building Float, an AI-enabled parametric insurance platform that safeguards gig workers against income loss caused by external disruptions[cite: 14]. 
+We are building Float, an AI-enabled parametric insurance platform that safeguards gig workers against income loss caused by external disruptions. 
 
 A mobile app will be the primary platform for Float. We chose a native mobile approach for three specific reasons:
 * Delivery partners already rely entirely on their mobile devices for their daily operations.
 * The system requires persistent notifications natively supported by mobile OS environments.
 * We must capture logs locally even when network connectivity drops, ensuring that power outages or internet blackouts are still recorded and covered.
 
-[cite_start]Float offers automated coverage and payouts based on a weekly pricing model, perfectly aligned with the typical earnings cycle of gig workers[cite: 15]. Partners can select from three coverage tiers based on their weekly budget:
+Float offers automated coverage and payouts based on a weekly pricing model, perfectly aligned with the typical earnings cycle of gig workers. Partners can select from three coverage tiers based on their weekly budget:
 * Basic: 50% Coverage
 * Protection: 75% Coverage
 * Advanced Protection: 100% Coverage
 
-[cite_start]Whenever a driver experiences an issue leading to income loss, the system uses real-time trigger monitoring to automatically recognize the environmental or external factor[cite: 46]. [cite_start]It then instantly processes a payout directly to their account[cite: 49]. 
+Whenever a driver experiences an issue leading to income loss, the system uses real-time trigger monitoring to automatically recognize the environmental or external factor. It then instantly processes a payout directly to their account. 
 
 **Covered Factors:**
 * **Environmental:** AQI spikes, rain, floods, landslides, and extreme heat.
@@ -208,7 +208,7 @@ A drop beyond 3σ has a 0.03% natural probability of occurring, which statistica
 
 ## 6. Adversarial Defense & Anti-Spoofing Strategy (Market Crash Counter Plan)
 
-[cite_start]To prevent fraudulent claims, we implement intelligent fraud detection focusing on location and activity validation[cite: 39, 42]. GPS coordinates are sampled every 2 minutes and converted to an H3 cell at resolution 9 to 10. A sliding window of the last N pings forms the worker's trajectory. 
+To prevent fraudulent claims, we implement intelligent fraud detection focusing on location and activity validation. GPS coordinates are sampled every 2 minutes and converted to an H3 cell at resolution 9 to 10. A sliding window of the last N pings forms the worker's trajectory. 
 
 Validation checks run on every new ping:
 * **Speed Check:** Calculated as H3 distance / time delta. A bike has a realistic max of 50 km/h. We flag speeds greater than 80 km/h between pings. On foot, we flag speeds greater than 15 km/h.
