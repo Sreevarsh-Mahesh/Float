@@ -244,6 +244,13 @@ A drop beyond 3σ has a 0.03% natural probability of occurring, which statistica
 
 <p align="center"><img src="Assets/Headers/header_defense.svg" width="100%" alt="Adversarial Defense & Anti-Spoofing"/></p>
 
+### Adversarial Defense & Anti-Spoofing Strategy (Market Crash Scenario)
+
+<p align="center"><img src="Assets/h3_gps_antispoof_pipeline(1).svg" width="100%" alt="Adversarial Defense & Anti-Spoofing"/></p>
+
+
+<p align="center"><img src="Assets/h3_spoof_check_detail(1).svg" width="100%" alt="Adversarial Defense & Anti-Spoofing"/></p>
+
 To prevent fraudulent claims, we implement intelligent fraud detection focusing on location and activity validation. GPS coordinates are sampled every 2 minutes and converted to an H3 cell at resolution 9 to 10. A sliding window of the last N pings forms the worker's trajectory.
 
 Validation checks run on every new ping:
