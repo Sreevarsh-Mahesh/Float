@@ -2,8 +2,6 @@
 
 <p align="center"><img src="Assets/Headers/header_main.svg" width="100%" alt="Float: Income Protection for the Gig Economy"/></p>
 
-[Insert Video Placeholder: Link to 2-minute pitch and strategy video]
-
 ---
 ### TL;DR
 
@@ -67,8 +65,6 @@ Whenever a driver experiences an issue leading to income loss, the system uses r
 
 ### Premiums
 
-[Placeholder for dynamic premium calculation logic using AI to adjust weekly pricing based on hyper-local risk factors]
-
 ### Payouts Model
 
 Each factor has a specific trigger limit. Once the threshold is crossed, the payout logic is initiated.
@@ -113,8 +109,6 @@ Payout = Average Pay * Scaling Factor
 ---
 
 <p align="center"><img src="Assets/Headers/header_tech.svg" width="100%" alt="Technical Implementation"/></p>
-
-[Insert Diagram: System architecture flow showing the mobile app communicating with FastAPI, passing data to the Postgres database and Redis queues, with the PyTorch model handling trigger validation]
 
 We utilize Uber's H3 grid pattern to define unit locations on the map as hexagon grids. This standardizes location data for easier validation and consensus checking.
 
@@ -238,7 +232,6 @@ A drop beyond 3σ has a 0.03% natural probability of occurring, which statistica
 | **Database** | <img src="https://img.shields.io/badge/PostgreSQL-316192?style=flat-square&logo=postgresql&logoColor=white" alt="PostgreSQL"/> | Primary data store for driver profiles, earning history, claims, payouts, and model metadata. |
 
 **Data Sources:**
-[Placeholder for specific APIs used for weather, traffic, and platform simulated data]
 
 ---
 ### Brainstorming & Ideation
