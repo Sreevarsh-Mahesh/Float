@@ -5,7 +5,15 @@
 [Insert Video Placeholder: Link to 2-minute pitch and strategy video]
 
 ---
+### TL;DR
 
+> **Float** is an AI-enabled parametric insurance platform for gig workers that automatically replaces lost wages due to external disruptions (extreme weather, AQI spikes, road closures). 
+> 
+> * **Zero-Touch Claims:** Real-time spatial AI (ST-GNN) monitors the worker's grid and auto-triggers payouts.
+> * **Niche Focus:** Built specifically for food delivery partners (e.g., Zomato, Swiggy).
+> * **Income Protection Only:** Covers lost wages, not physical vehicle damages.
+
+---
 <p align="center"><img src="Assets/Headers/header_problem.svg" width="100%" alt="Problem & Niche"/></p>
 
 India's platform-based delivery partners are the backbone of our fast-paced digital economy. However, external disruptions such as extreme weather, pollution, and natural disasters can reduce their working hours and cause them to lose 20-30% of their monthly earnings. Currently, gig workers have no income protection against these uncontrollable events. When disruptions occur, they bear the full financial loss with no safety net.
@@ -29,20 +37,20 @@ A mobile app will be the primary platform for Float. We chose a native mobile ap
 Float offers automated coverage and payouts based on a weekly pricing model, perfectly aligned with the typical earnings cycle of gig workers. Partners can select from three coverage tiers based on their weekly budget:
 
 | Tier | Coverage |
-|------|----------|
-| Basic | 50% |
-| Protection | 75% |
-| Advanced Protection | 100% |
+|:-----|:---------|
+| **Basic** | 50% |
+| **Protection** | 75% |
+| **Advanced Protection** | 100% |
 
 Whenever a driver experiences an issue leading to income loss, the system uses real-time trigger monitoring to automatically recognize the environmental or external factor. It then instantly processes a payout directly to their account.
 
 **Covered Factors:**
 
 | Category | Triggers |
-|----------|----------|
-| Environmental | AQI spikes, rain, floods, landslides, extreme heat |
-| Social and Infrastructure | Road closures, protests, sudden curfews, cell tower outages |
-| Platform and Market | Delivery platform downtime, extreme oversupply delays |
+|:---------|:---------|
+| **Environmental** | AQI spikes, rain, floods, landslides, extreme heat |
+| **Social and Infrastructure** | Road closures, protests, sudden curfews, cell tower outages |
+| **Platform and Market** | Delivery platform downtime, extreme oversupply delays |
 
 ---
 
@@ -68,21 +76,21 @@ Each factor has a specific trigger limit. Once the threshold is crossed, the pay
 #### 1. Base Metrics
 
 | Metric | Formula |
-|--------|---------|
-| Daily Average | Sum of Daily Earnings / Active Days |
-| Weekly Average | Sum of Daily Earnings / 7 |
-| Monthly Average | Sum of Daily Earnings / 30 |
-| Weekly Variance | Sum of (Daily Earning minus Daily Average) squared / 7 |
-| Standard Deviation | Square root of Weekly Variance |
-| Anomaly Threshold | 3 * Standard Deviation |
+|:-------|:--------|
+| **Daily Average** | Sum of Daily Earnings / Active Days |
+| **Weekly Average** | Sum of Daily Earnings / 7 |
+| **Monthly Average** | Sum of Daily Earnings / 30 |
+| **Weekly Variance** | Sum of (Daily Earning minus Daily Average) squared / 7 |
+| **Standard Deviation** | Square root of Weekly Variance |
+| **Anomaly Threshold** | 3 * Standard Deviation |
 
 #### 2. Environmental Payouts
 
 | Event | Formula |
-|-------|---------|
-| Rain | Scaling Factor * (Current Rain / Average Rain) * Average Pay |
-| AQI | (Current AQI / Max AQI) * Scaling Factor * Daily Average Pay |
-| Heat | Heat Alert (Binary 1 or 0) * (Feels Like Temp / Max Temp) * Average Pay * Scaling Factor |
+|:------|:--------|
+| **Rain** | Scaling Factor * (Current Rain / Average Rain) * Average Pay |
+| **AQI** | (Current AQI / Max AQI) * Scaling Factor * Daily Average Pay |
+| **Heat** | Heat Alert (Binary 1 or 0) * (Feels Like Temp / Max Temp) * Average Pay * Scaling Factor |
 
 #### 3. Acts of God Payout
 
@@ -93,14 +101,14 @@ Payout = Average Pay * Scaling Factor
 #### 4. Road Anomalies & Market Delays
 
 | Step | Logic |
-|------|-------|
-| Event Validation | Grid has flagged event AND Event time equals Driver ping time |
-| Speed Spread | Historical Average Speed minus Current Order Speed |
-| Slow Delivery Trigger | Speed Spread > (3 * Speed Variance) |
-| Slow Delivery Count | Incremented by 1 for every triggered Slow Delivery |
-| Tier Check | Slow Delivery Count > Tier Threshold |
-| Grid Consensus | Do other drivers in the same H3 grid at the same time have speed anomalies? |
-| Final Payout Trigger | Tier Check passed AND Grid Consensus is Yes |
+|:-----|:------|
+| **Event Validation** | Grid has flagged event AND Event time equals Driver ping time |
+| **Speed Spread** | Historical Average Speed minus Current Order Speed |
+| **Slow Delivery Trigger** | Speed Spread > (3 * Speed Variance) |
+| **Slow Delivery Count** | Incremented by 1 for every triggered Slow Delivery |
+| **Tier Check** | Slow Delivery Count > Tier Threshold |
+| **Grid Consensus** | Do other drivers in the same H3 grid at the same time have speed anomalies? |
+| **Final Payout Trigger** | Tier Check passed AND Grid Consensus is Yes |
 
 ---
 
@@ -133,17 +141,17 @@ Combined, the model learns things like: "whenever this spatial activation patter
 Every H3 cell at every timestep carries the following feature vector:
 
 | Feature | Source |
-|---------|--------|
-| Rainfall (mm) | Weather data |
-| AQI | Air quality data |
-| Feels-like temperature | Weather data |
-| Wind speed | Weather data |
-| Curfew / protest flag (0 or 1) | News pipeline |
-| Road closure flag (0 or 1) | Civic alerts |
-| Order density | Simulated for now |
-| Active driver count in cell | App GPS |
-| Hour of day, day of week | System |
-| Festival flag (0 or 1) | Public calendar |
+|:--------|:-------|
+| **Rainfall (mm)** | Weather data |
+| **AQI** | Air quality data |
+| **Feels-like temperature** | Weather data |
+| **Wind speed** | Weather data |
+| **Curfew / protest flag** (0 or 1) | News pipeline |
+| **Road closure flag** (0 or 1) | Civic alerts |
+| **Order density** | Simulated for now |
+| **Active driver count in cell** | App GPS |
+| **Hour of day, day of week** | System |
+| **Festival flag** (0 or 1) | Public calendar |
 
 #### What the Model Predicts
 
@@ -165,21 +173,21 @@ Total Loss = Binary Cross Entropy (triggers) + lambda x MSE (payout amount)
 **Key hyperparameters:**
 
 | Parameter | Value |
-|-----------|-------|
-| GCN layers | 2 |
-| Transformer layers | 3 |
-| Attention heads | 4 |
-| Learning rate | 0.001 |
-| Batch size | 32 |
-| Early stopping patience | 5 epochs |
+|:----------|:------|
+| **GCN layers** | 2 |
+| **Transformer layers** | 3 |
+| **Attention heads** | 4 |
+| **Learning rate** | 0.001 |
+| **Batch size** | 32 |
+| **Early stopping patience** | 5 epochs |
 
 **Target metrics:**
 
 | Metric | Target |
-|--------|--------|
-| Trigger F1 Score | > 0.85 |
-| Payout MAE | < Rs. 50 |
-| AUC-ROC | > 0.90 |
+|:-------|:-------|
+| **Trigger F1 Score** | > 0.85 |
+| **Payout MAE** | < Rs. 50 |
+| **AUC-ROC** | > 0.90 |
 
 The model is retrained every Sunday night on the week's new claims data. The new model only replaces production if it outperforms the existing one.
 
@@ -210,10 +218,10 @@ A drop beyond 3σ has a 0.03% natural probability of occurring, which statistica
 **Fraud score routing:**
 
 | Score | Action |
-|-------|--------|
-| Below 30 | Auto approve |
-| 30 to 70 | Approve, flag for weekly review |
-| Above 70 | Hold, escalate to manual review |
+|:------|:-------|
+| **Below 30** | Auto approve |
+| **30 to 70** | Approve, flag for weekly review |
+| **Above 70** | Hold, escalate to manual review |
 
 ---
 
@@ -241,17 +249,17 @@ To prevent fraudulent claims, we implement intelligent fraud detection focusing 
 Validation checks run on every new ping:
 
 | Check | Logic |
-|-------|-------|
-| Speed Check | Calculated as H3 distance / time delta. A bike has a realistic max of 50 km/h — speeds greater than 80 km/h between pings are flagged. On foot, speeds greater than 15 km/h are flagged. |
-| Hop Continuity Check | Grid distance must be less than or equal to the expected hops for the transport mode. A teleport from one cell to a distant cell in 2 minutes is flagged, regardless of stated speed. |
-| Trajectory Smoothness | Sudden direction reversals or zigzag patterns inconsistent with known road networks are scored as anomalies. |
-| Cell History Consistency | If a worker claims a disruption in a specific cell, their trajectory must include that cell or its immediate surrounding ring. Claiming a flood disruption in an unvisited cell results in an automatic flag for review. |
+|:------|:------|
+| **Speed Check** | Calculated as H3 distance / time delta. A bike has a realistic max of 50 km/h — speeds greater than 80 km/h between pings are flagged. On foot, speeds greater than 15 km/h are flagged. |
+| **Hop Continuity Check** | Grid distance must be less than or equal to the expected hops for the transport mode. A teleport from one cell to a distant cell in 2 minutes is flagged, regardless of stated speed. |
+| **Trajectory Smoothness** | Sudden direction reversals or zigzag patterns inconsistent with known road networks are scored as anomalies. |
+| **Cell History Consistency** | If a worker claims a disruption in a specific cell, their trajectory must include that cell or its immediate surrounding ring. Claiming a flood disruption in an unvisited cell results in an automatic flag for review. |
 
 **Scoring Logic:**
 
 Each ping produces a spoof score between 0 and 1.
 
 | Rolling Average Spoof Score | Action |
-|-----------------------------|--------|
-| > 0.6 | Claim is auto-rejected and sent to a human moderator |
-| > 0.85 | Account is flagged and security deposit is partially held |
+|:----------------------------|:-------|
+| **> 0.6** | Claim is auto-rejected and sent to a human moderator |
+| **> 0.85** | Account is flagged and security deposit is partially held |
