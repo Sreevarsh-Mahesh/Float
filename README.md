@@ -251,6 +251,8 @@ A drop beyond 3σ has a 0.03% natural probability of occurring, which statistica
 
 ### Adversarial Defense & Anti-Spoofing Strategy (Market Crash Scenario)
 
+> **Try it out live:** Experience our H3-based spoofing detection visualization engine here: [https://h3.4rc.in/](https://h3.4rc.in/)
+
 <p align="center"><img src="Assets/h3_gps_antispoof_pipeline(1).svg" width="100%" alt="Adversarial Defense & Anti-Spoofing"/></p>
 
 
