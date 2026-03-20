@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="100" viewBox="0 0 800 100">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a1628"/>
+      <stop offset="50%" style="stop-color:#122a52"/>
+      <stop offset="100%" style="stop-color:#1976d2"/>
+    </linearGradient>
+    <linearGradient id="wave1" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:rgba(255,255,255,0.12)"/>
+      <stop offset="100%" style="stop-color:rgba(255,255,255,0.02)"/>
+    </linearGradient>
+    <linearGradient id="wave2" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:rgba(25,118,210,0.25)"/>
+      <stop offset="100%" style="stop-color:rgba(25,118,210,0.05)"/>
+    </linearGradient>
+  </defs>
+  <style>
+    @keyframes wave1 { 0%,100%{d:path('M0,73 C85,59 185,83 285,69 C385,55 485,79 585,67 C685,55 742,73 800,69 L800,100 L0,100 Z')} 50%{d:path('M0,69 C85,79 185,59 285,73 C385,63 485,55 585,71 C685,77 742,61 800,73 L800,100 L0,100 Z')} }
+    @keyframes wave2 { 0%,100%{d:path('M0,78 C125,68 225,88 385,73 C525,58 625,83 800,76 L800,100 L0,100 Z')} 50%{d:path('M0,83 C125,76 225,63 385,78 C525,88 625,68 800,80 L800,100 L0,100 Z')} }
+    @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-2px)} }
+    @keyframes sparkle { 0%,100%{opacity:0.2} 50%{opacity:0.8} }
+    .w1{animation:wave1 4.3s ease-in-out infinite}
+    .w2{animation:wave2 5.2s ease-in-out infinite}
+    .title{animation:float 3.1s ease-in-out infinite}
+    .spark{animation:sparkle 2.3s ease-in-out infinite}
+  </style>
+  <rect width="800" height="100" fill="url(#bg)" rx="10"/>
+  <circle cx="65" cy="24" r="2.4" fill="rgba(255,255,255,0.16)" class="spark"/>
+  <circle cx="735" cy="20" r="1.9" fill="rgba(255,255,255,0.12)" class="spark" style="animation-delay:0.5s"/>
+  <circle cx="670" cy="38" r="1.7" fill="rgba(255,255,255,0.1)" class="spark" style="animation-delay:1s"/>
+  <path class="w2" fill="url(#wave2)" d="M0,78 C125,68 225,88 385,73 C525,58 625,83 800,76 L800,100 L0,100 Z"/>
+  <path class="w1" fill="url(#wave1)" d="M0,73 C85,59 185,83 285,69 C385,55 485,79 585,67 C685,55 742,73 800,69 L800,100 L0,100 Z"/>
+  <g class="title">
+    <text x="400" y="48" fill="white" font-family="'Segoe UI',Roboto,Arial,sans-serif" font-size="22" font-weight="bold" text-anchor="middle" letter-spacing="0.5">The Maths</text>
+  </g>
+</svg>

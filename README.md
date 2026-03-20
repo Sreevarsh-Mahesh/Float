@@ -1,10 +1,10 @@
 ![Banner](Assets/Banner.png)
 
-# Float: Income Protection for the Gig Economy
+<p align="center"><img src="Assets/Headers/header_main.svg" width="100%" alt="Float: Income Protection for the Gig Economy"/></p>
 
 [Insert Video Placeholder: Link to 2-minute pitch and strategy video]
 
-## 1. Problem we are solving and niche we are focusing on
+<p align="center"><img src="Assets/Headers/header_problem.svg" width="100%" alt="Problem & Niche"/></p>
 
 India's platform-based delivery partners are the backbone of our fast-paced digital economy. However, external disruptions such as extreme weather, pollution, and natural disasters can reduce their working hours and cause them to lose 20-30% of their monthly earnings. Currently, gig workers have no income protection against these uncontrollable events. When disruptions occur, they bear the full financial loss with no safety net.
 
@@ -12,7 +12,7 @@ Our primary niche focuses strictly on food delivery partners operating on platfo
 
 **Crucial Scope Definition:** Float is a parametric insurance platform designed exclusively for loss of income. We strictly exclude coverage for health, life, accidents, or vehicle repairs. If a flood damages a bike, we do not pay for the repairs; we pay for the wages lost because the partner could not work.
 
-## 2. How we are solving the problem
+<p align="center"><img src="Assets/Headers/header_solution.svg" width="100%" alt="How We Solve It"/></p>
 
 We are building Float, an AI-enabled parametric insurance platform that safeguards gig workers against income loss caused by external disruptions. 
 
@@ -33,7 +33,7 @@ Whenever a driver experiences an issue leading to income loss, the system uses r
 * **Social and Infrastructure:** Road closures, protests, sudden curfews, and cell tower outages.
 * **Platform and Market:** Delivery platform downtime or extreme oversupply delays (e.g., peak hour restaurant crowding causing unpaid delays).
 
-## 3. User flow / experience
+<p align="center"><img src="Assets/Headers/header_userflow.svg" width="100%" alt="User Flow & Experience"/></p>
 
 
 1. **Onboarding:** A delivery partner downloads Float, registers, and securely verifies their identity directly through their primary food delivery platform.
@@ -41,7 +41,7 @@ Whenever a driver experiences an issue leading to income loss, the system uses r
 3. **Zero-Touch Claims:** From that moment, if an automated trigger fires in their active zone, they get paid automatically. 
 4. **Transparency:** A push notification informs them of the specific event, the credited amount, and the calculation basis. Their dashboard maintains a persistent, running record of every payout and the corresponding trigger event.
 
-## 4. The Maths (Payouts, Premiums, etc)
+<p align="center"><img src="Assets/Headers/header_maths.svg" width="100%" alt="The Maths"/></p>
 
 ### Premiums
 [Placeholder for dynamic premium calculation logic using AI to adjust weekly pricing based on hyper-local risk factors]
@@ -74,7 +74,7 @@ Each factor has a specific trigger limit. Once the threshold is crossed, the pay
 * Grid Consensus: Do other drivers in the same H3 grid at the same time have speed anomalies?
 * Final Payout Trigger: Tier Check passed AND Grid Consensus is Yes
 
-## 5. Technical Implementation Plan
+<p align="center"><img src="Assets/Headers/header_tech.svg" width="100%" alt="Technical Implementation"/></p>
 
 [Insert Diagram: System architecture flow showing the mobile app communicating with FastAPI, passing data to the Postgres database and Redis queues, with the PyTorch model handling trigger validation]
 
@@ -211,7 +211,7 @@ A drop beyond 3σ has a 0.03% natural probability of occurring, which statistica
 **Data Sources:**
 [Placeholder for specific APIs used for weather, traffic, and platform simulated data]
 
-## 6. Adversarial Defense & Anti-Spoofing Strategy (Market Crash Counter Plan)
+<p align="center"><img src="Assets/Headers/header_defense.svg" width="100%" alt="Adversarial Defense & Anti-Spoofing"/></p>
 
 To prevent fraudulent claims, we implement intelligent fraud detection focusing on location and activity validation. GPS coordinates are sampled every 2 minutes and converted to an H3 cell at resolution 9 to 10. A sliding window of the last N pings forms the worker's trajectory. 
 

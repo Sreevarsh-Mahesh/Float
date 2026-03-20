@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="120" viewBox="0 0 800 120">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a1628"/>
+      <stop offset="50%" style="stop-color:#0d2b4e"/>
+      <stop offset="100%" style="stop-color:#1a73e8"/>
+    </linearGradient>
+    <linearGradient id="wave1" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:rgba(255,255,255,0.15)"/>
+      <stop offset="100%" style="stop-color:rgba(255,255,255,0.02)"/>
+    </linearGradient>
+    <linearGradient id="wave2" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:rgba(26,115,232,0.3)"/>
+      <stop offset="100%" style="stop-color:rgba(26,115,232,0.05)"/>
+    </linearGradient>
+  </defs>
+  <style>
+    @keyframes wave1 { 0%,100%{d:path('M0,90 C100,70 200,100 300,85 C400,70 500,95 600,80 C700,65 750,90 800,85 L800,120 L0,120 Z')} 50%{d:path('M0,85 C100,95 200,75 300,90 C400,80 500,70 600,90 C700,85 750,75 800,90 L800,120 L0,120 Z')} }
+    @keyframes wave2 { 0%,100%{d:path('M0,95 C150,85 250,105 400,90 C550,75 650,100 800,92 L800,120 L0,120 Z')} 50%{d:path('M0,100 C150,90 250,80 400,95 C550,105 650,85 800,95 L800,120 L0,120 Z')} }
+    @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-3px)} }
+    @keyframes sparkle { 0%,100%{opacity:0.3} 50%{opacity:0.9} }
+    .w1{animation:wave1 4s ease-in-out infinite}
+    .w2{animation:wave2 5s ease-in-out infinite}
+    .title{animation:float 3s ease-in-out infinite}
+    .spark{animation:sparkle 2s ease-in-out infinite}
+  </style>
+  <rect width="800" height="120" fill="url(#bg)" rx="12"/>
+  <!-- Water drops -->
+  <circle cx="60" cy="30" r="3" fill="rgba(255,255,255,0.2)" class="spark"/>
+  <circle cx="740" cy="25" r="2.5" fill="rgba(255,255,255,0.15)" class="spark" style="animation-delay:0.5s"/>
+  <circle cx="680" cy="45" r="2" fill="rgba(255,255,255,0.12)" class="spark" style="animation-delay:1s"/>
+  <circle cx="120" cy="50" r="2" fill="rgba(255,255,255,0.1)" class="spark" style="animation-delay:1.5s"/>
+  <!-- Waves -->
+  <path class="w2" fill="url(#wave2)" d="M0,95 C150,85 250,105 400,90 C550,75 650,100 800,92 L800,120 L0,120 Z"/>
+  <path class="w1" fill="url(#wave1)" d="M0,90 C100,70 200,100 300,85 C400,70 500,95 600,80 C700,65 750,90 800,85 L800,120 L0,120 Z"/>
+  <!-- Boat icon -->
+  <g class="title">
+    <text x="400" y="68" fill="white" font-family="'Segoe UI',Roboto,Arial,sans-serif" font-size="28" font-weight="bold" text-anchor="middle" letter-spacing="1">Float: Income Protection for the Gig Economy</text>
+  </g>
+</svg>
