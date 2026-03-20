@@ -1,4 +1,4 @@
-[Insert Banner Image: A minimalist, modern graphic of a folded paper boat floating on calm blue water with the word "Float" in clean typography]
+![Banner](Assets/Banner.png)
 
 # Float: Income Protection for the Gig Economy
 
