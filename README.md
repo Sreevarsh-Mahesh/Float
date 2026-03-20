@@ -1,6 +1,12 @@
 ![Banner](Assets/Banner.png)
 
 # Float: Income Protection for the Gig Economy
+![Status](https://img.shields.io/badge/status-building-orange?style=for-the-badge&logo=statuspage)
+![Platform](https://img.shields.io/badge/platform-Android%20%7C%20iOS-blue?style=for-the-badge&logo=react)
+![Stack](https://img.shields.io/badge/stack-FastAPI%20%2B%20PyTorch%20%2B%20React%20Native-purple?style=for-the-badge)
+![Target](https://img.shields.io/badge/niche-Delivery%20Partners%20🛵-green?style=for-the-badge)
+![License](https://img.shields.io/badge/license-MIT-lightgrey?style=for-the-badge)
+
 
 [Insert Video Placeholder: Link to 2-minute pitch and strategy video]
 
