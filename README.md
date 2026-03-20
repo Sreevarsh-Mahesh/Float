@@ -221,13 +221,13 @@ A drop beyond 3σ has a 0.03% natural probability of occurring, which statistica
 
 | Layer | Technology | Purpose |
 |-------|------------|---------|
-| Mobile app | React Native (Expo) | Primary user interface. Chosen because delivery partners already use mobile for work; supports persistent notifications; captures offline logs for outage coverage. |
-| Backend API | FastAPI | High-performance async API server for all client-server communication. |
-| ML framework | PyTorch | ST-GNN model training and inference. |
-| Spatial indexing | H3 library | Hexagonal hierarchical spatial index. Every location is mapped to an H3 cell. |
-| Task queue | Redis + Celery | Asynchronous job processing — trigger evaluation, payout computation, model retraining. |
-| LLM pipeline | LangGraph | News and social media classification for social/infrastructure trigger detection. |
-| Database | PostgreSQL | Primary data store for driver profiles, earning history, claims, payouts, and model metadata. |
+| **Mobile app** | <img src="https://img.shields.io/badge/React%20Native-20232A?style=flat-square&logo=react&logoColor=61DAFB" alt="React Native"/> <br/>*(Expo)* | Primary user interface. Chosen because delivery partners already use mobile for work; supports persistent notifications; captures offline logs for outage coverage. |
+| **Backend API** | <img src="https://img.shields.io/badge/FastAPI-005571?style=flat-square&logo=fastapi" alt="FastAPI"/> | High-performance async API server for all client-server communication. |
+| **ML framework** | <img src="https://img.shields.io/badge/PyTorch-EE4C2C?style=flat-square&logo=pytorch&logoColor=white" alt="PyTorch"/> | ST-GNN model training and inference. |
+| **Spatial indexing**| **H3 library** | Hexagonal hierarchical spatial index. Every location is mapped to an H3 cell. |
+| **Task queue** | <img src="https://img.shields.io/badge/Redis-DC382D?style=flat-square&logo=redis&logoColor=white" alt="Redis"/> <br/>*+ Celery* | Asynchronous job processing — trigger evaluation, payout computation, model retraining. |
+| **LLM pipeline** | **LangGraph** | News and social media classification for social/infrastructure trigger detection. |
+| **Database** | <img src="https://img.shields.io/badge/PostgreSQL-316192?style=flat-square&logo=postgresql&logoColor=white" alt="PostgreSQL"/> | Primary data store for driver profiles, earning history, claims, payouts, and model metadata. |
 
 **Data Sources:**
 [Placeholder for specific APIs used for weather, traffic, and platform simulated data]
