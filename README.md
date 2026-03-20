@@ -241,7 +241,19 @@ A drop beyond 3σ has a 0.03% natural probability of occurring, which statistica
 [Placeholder for specific APIs used for weather, traffic, and platform simulated data]
 
 ---
+### Brainstorming & Ideation
 
+<p align="center"><img src="Assets/idea/1.svg" width="100%"/></p>
+
+<p align="center"><img src="Assets/idea/2.svg" width="100%"/></p>
+
+<p align="center"><img src="Assets/idea/3.svg" width="100%"/></p>
+
+<p align="center"><img src="Assets/idea/4.svg" width="100%"/></p>
+
+<p align="center"><img src="Assets/idea/5.svg" width="100%"/></p>
+
+---
 <p align="center"><img src="Assets/Headers/header_defense.svg" width="100%" alt="Adversarial Defense & Anti-Spoofing"/></p>
 
 ### Adversarial Defense & Anti-Spoofing Strategy (Market Crash Scenario)
