@@ -106,36 +106,3 @@ Each ping produces a spoof score between 0 and 1.
 * If rolling average spoof score > 0.6: Claim is auto-rejected and sent to a human moderator.
 * If rolling average spoof score > 0.85: Account is flagged and security deposit is partially held.
 
-**Implementation Sketch:**
-
-```python
-import h3
-
-SAMPLE_INTERVAL_MIN = 2
-MAX_BIKE_SPEED_KMH = 80
-
-def to_cell(lat, lng, res=9):
-    return h3.latlng_to_cell(lat, lng, res)
-
-def cell_distance_km(a, b):
-    la, lo = h3.cell_to_latlng(a)
-    lb, ll = h3.cell_to_latlng(b)
-    return haversine(la, lo, lb, ll)
-
-def validate_hop(prev_cell, curr_cell, minutes_elapsed):
-    dist_km = cell_distance_km(prev_cell, curr_cell)
-    speed   = dist_km / (minutes_elapsed / 60)
-    hops    = h3.grid_distance(prev_cell, curr_cell)
-    spoof   = 0.0
-    
-    if speed > MAX_BIKE_SPEED_KMH: 
-        spoof += 0.5
-    if hops > 12:                   
-        spoof += 0.4
-        
-    return min(spoof, 1.0)
-
-def claim_location_check(trajectory_cells, claimed_cell):
-    reachable = h3.grid_disk(claimed_cell, 1)
-    return any(c in reachable for c in trajectory_cells)
-```
