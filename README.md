@@ -195,13 +195,18 @@ A drop beyond 3σ has a 0.03% natural probability of occurring, which statistica
 
 ---
 
-**Tech Stack:**
-* **Frontend:** React Native (Expo)
-* **Backend:** FastAPI
-* **AI/ML:** PyTorch, LangGraph
-* **Mapping/Geospatial:** H3 Library
-* **Queue/Workers:** Redis + Celery
-* **Database:** PostgreSQL
+## Tech Stack
+
+| Layer | Technology | Purpose |
+|-------|-----------|---------|
+| **Mobile app** | React Native (Expo) | Primary user interface. Chosen because delivery partners already use mobile for work; supports persistent notifications; captures offline logs for outage coverage. |
+| **Backend API** | FastAPI | High-performance async API server for all client-server communication. |
+| **ML framework** | PyTorch | ST-GNN model training and inference. |
+| **Spatial indexing** | H3 library | Hexagonal hierarchical spatial index. Every location is mapped to an H3 cell. |
+| **Task queue** | Redis + Celery | Asynchronous job processing -- trigger evaluation, payout computation, model retraining. |
+| **LLM pipeline** | LangGraph | News and social media classification for social/infrastructure trigger detection. |
+| **Database** | PostgreSQL | Primary data store for driver profiles, earning history, claims, payouts, and model metadata. |
+
 
 **Data Sources:**
 [Placeholder for specific APIs used for weather, traffic, and platform simulated data]
