@@ -80,6 +80,121 @@ Each factor has a specific trigger limit. Once the threshold is crossed, the pay
 
 We utilize Uber's H3 grid pattern to define unit locations on the map as hexagon grids. This standardizes location data for easier validation and consensus checking.
 
+### AI/ML Integration
+
+Most insurance platforms treat location as just a city name. Float doesn't. We map the entire operating area into H3 hexagonal cells at resolution 9 (roughly 0.1 sq km per cell) and treat the city as a live graph where every cell communicates with its neighbors. This is the core idea behind everything Float does with AI.
+
+#### The Model - ST-GNN
+
+Float uses a Spatio-Temporal Graph Neural Network. Two components working together:
+
+**GCN (Graph Convolutional Network) - the spatial part**
+
+Every H3 cell has 6 neighbors via `h3.k_ring(cell_id, k=1)`. The GCN makes each cell look at its neighbors and update its own risk understanding based on what they are seeing. So if the cells surrounding a worker's zone are flooding, that worker's risk score goes up even before their own cell crosses the rainfall threshold. Two GCN layers means the model sees up to 2 hops away, roughly a 300-400m radius of spatial context per cell.
+
+**Transformer - the temporal part**
+
+Standard models only look at the previous timestep. The Transformer uses self-attention to figure out which past moments actually matter, like last Monday at 7 PM or last monsoon season, and weighs them accordingly. Much more powerful than an LSTM for seasonal and weekly patterns.
+
+Combined, the model learns things like: "whenever this spatial activation pattern appears in the northwest cluster, the central delivery zone floods 6 hours later." No simpler model can learn that.
+
+
+#### Input Features
+
+Every H3 cell at every timestep carries the following feature vector:
+
+| Feature | Source |
+|---|---|
+| Rainfall (mm) | Weather data |
+| AQI | Air quality data |
+| Feels-like temperature | Weather data |
+| Wind speed | Weather data |
+| Curfew / protest flag (0 or 1) | News pipeline |
+| Road closure flag (0 or 1) | Civic alerts |
+| Order density | Simulated for now |
+| Active driver count in cell | App GPS |
+| Hour of day, day of week | System |
+| Festival flag (0 or 1) | Public calendar |
+
+
+
+#### What the Model Predicts
+
+- Did each trigger type fire? (binary per trigger type)
+- Expected payout amount in rupees (regression)
+
+
+
+#### Training
+
+No real claims data exists yet so we bootstrap using synthetic labels constructed from known historical disruption events such as Chennai 2015 floods, Delhi 2023 smog, and Bengaluru 2022 waterlogging. We know these happened, we know which zones were hit, so we can construct ground truth labels.
+
+**Dataset split:** 70% train / 15% validation / 15% test
+
+**Loss function:**
+```
+Total Loss = Binary Cross Entropy (triggers) + lambda x MSE (payout amount)
+```
+
+**Key hyperparameters:**
+
+| Parameter | Value |
+|---|---|
+| GCN layers | 2 |
+| Transformer layers | 3 |
+| Attention heads | 4 |
+| Learning rate | 0.001 |
+| Batch size | 32 |
+| Early stopping patience | 5 epochs |
+
+**Target metrics:**
+
+| Metric | Target |
+|---|---|
+| Trigger F1 Score | > 0.85 |
+| Payout MAE | < Rs. 50 |
+| AUC-ROC | > 0.90 |
+
+The model is retrained every Sunday night on the week's new claims data. The new model only replaces production if it outperforms the existing one.
+
+
+
+#### Cold Start Handling
+
+Workers with less than 14 days of history fall back to their H3 zone's regional average risk score. A 1.2x multiplier is applied to their premium as a buffer until sufficient personal history builds up.
+
+
+
+#### Fraud Detection
+
+Four layers running in parallel with the trigger engine:
+
+1. **Data validation** - confirm the event actually occurred via independent sources
+2. **GPS cross-check** - worker's coarse location (sampled every 15-20 min) must intersect the affected H3 zone during the event window
+3. **Personal anomaly check** - claim frequency is flagged if it exceeds 2 standard deviations above the worker's own 8-week rolling average
+4. **Cohort check** - if 200 workers are insured in a flooded zone, Float expects 60-90% to trigger. If only 1 claims, or if 100% claim but platform order data shows only a 30% drop, both cases get flagged
+
+**Speed-based validation** uses the base speed formula derived from the worker's own delivery history:
+
+```
+μ (mu)= mean delivery speed across all past orders
+σ (sigma) = standard deviation of delivery speed
+
+Flag if: current_speed < μ - 3*σ
+```
+
+A drop beyond 3σ has a 0.03% natural probability of occurring, which statistically confirms the disruption was real and not fabricated.
+
+**Fraud score routing:**
+
+| Score | Action |
+|---|---|
+| Below 30 | Auto approve |
+| 30 to 70 | Approve, flag for weekly review |
+| Above 70 | Hold, escalate to manual review |
+
+---
+
 **Tech Stack:**
 * **Frontend:** React Native (Expo)
 * **Backend:** FastAPI
