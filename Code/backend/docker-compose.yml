@@ -1,0 +1,22 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgis/postgis:16-3.4-alpine
+    container_name: float_postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: float_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - float_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d float_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  float_pgdata:
