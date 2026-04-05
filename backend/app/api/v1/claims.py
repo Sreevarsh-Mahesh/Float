@@ -25,19 +25,6 @@ def get_my_claims(
     return [ClaimOut.model_validate(c) for c in claims]
 
 
-@router.get("/me/{claim_id}", response_model=ClaimOut)
-def get_my_claim(
-    claim_id: int,
-    db: DbDep,
-    current_user: User = Depends(get_current_user),
-):
-    """Get details of a specific claim belonging to this driver."""
-    claim = db.get(Claim, claim_id)
-    if not claim or claim.driver_id != current_user.id:
-        raise HTTPException(status_code=404, detail="Claim not found.")
-    return ClaimOut.model_validate(claim)
-
-
 @router.get("/me/payouts", response_model=list[PayoutOut])
 def get_my_payouts(
     db: DbDep,
@@ -55,3 +42,16 @@ def get_my_payouts(
         .all()
     )
     return [PayoutOut.model_validate(p) for p in payouts]
+
+
+@router.get("/me/{claim_id}", response_model=ClaimOut)
+def get_my_claim(
+    claim_id: int,
+    db: DbDep,
+    current_user: User = Depends(get_current_user),
+):
+    """Get details of a specific claim belonging to this driver."""
+    claim = db.get(Claim, claim_id)
+    if not claim or claim.driver_id != current_user.id:
+        raise HTTPException(status_code=404, detail="Claim not found.")
+    return ClaimOut.model_validate(claim)
