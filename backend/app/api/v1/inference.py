@@ -173,3 +173,21 @@ def list_trigger_events(db: DbDep, limit: int = 50, offset: int = 0):
         .all()
     )
     return [TriggerEventOut.model_validate(e) for e in events]
+
+
+@router.get("/grid/{h3_cell}", response_model=list[TriggerEventOut])
+def get_grid_context(
+    h3_cell: str,
+    db: DbDep,
+    current_user = Depends(get_current_user), # Require auth
+):
+    """Fetch active and recent past disruption events in a specific H3 cell."""
+    from app.models.trigger_event import TriggerEvent
+    events = (
+        db.query(TriggerEvent)
+        .filter(TriggerEvent.h3_cell == h3_cell)
+        .order_by(TriggerEvent.triggered_at.desc())
+        .limit(5)
+        .all()
+    )
+    return [TriggerEventOut.model_validate(e) for e in events]

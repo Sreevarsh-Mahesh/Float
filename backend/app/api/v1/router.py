@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from app.api.v1 import auth, users, policies, inference, claims, admin
+from app.api.v1 import auth, users, policies, inference, claims, admin, telemetry
 
 router = APIRouter(prefix="/api/v1")
 
@@ -10,3 +10,4 @@ router.include_router(policies.router)
 router.include_router(inference.router)
 router.include_router(claims.router)
 router.include_router(admin.router)
+router.include_router(telemetry.router)

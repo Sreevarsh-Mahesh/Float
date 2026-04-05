@@ -162,7 +162,8 @@ def _compute_base_payout(trigger: TriggerEvent, driver: User) -> float:
         payout = (aqi / settings.MAX_AQI) * s * base
     elif trigger.event_type == "heat":
         temp = raw.get("temp_feels_like", trigger.intensity)
-        payout = (temp / settings.MAX_TEMP) * base * s
+        heat_alert = raw.get("heat_alert", 1 if temp >= settings.MAX_TEMP else 0)
+        payout = heat_alert * (temp / settings.MAX_TEMP) * base * s
     elif trigger.event_type == "acts_of_god":
         payout = base * s  # README: fixed multiplier
     else:
