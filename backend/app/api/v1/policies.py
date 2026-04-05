@@ -5,6 +5,7 @@ from app.core.dependencies import DbDep, get_current_user
 from app.models.policy import Policy
 from app.models.user import User
 from app.schemas.policy import PolicyOut, PolicySubscribeRequest, PolicyTierInfo
+from sqlalchemy import func
 
 router = APIRouter(prefix="/policies", tags=["Policies"])
 settings = get_settings()
@@ -72,6 +73,26 @@ def subscribe(
         is_active=True,
     )
     db.add(policy)
+    db.commit()
+    db.refresh(policy)
+    # Set initial payment time to simulate first week paid
+    policy.last_payment_at = policy.activated_at
+    db.commit()
+    db.refresh(policy)
+    return policy
+
+@router.post("/me/pay-premium", response_model=PolicyOut)
+def pay_premium(db: DbDep, current_user: User = Depends(get_current_user)):
+    """Simulate paying the weekly premium. Updates last_payment_at to now."""
+    policy = (
+        db.query(Policy)
+        .filter_by(user_id=current_user.id, is_active=True)
+        .first()
+    )
+    if not policy:
+        raise HTTPException(status_code=404, detail="No active policy found to pay for.")
+    
+    policy.last_payment_at = func.now()
     db.commit()
     db.refresh(policy)
     return policy

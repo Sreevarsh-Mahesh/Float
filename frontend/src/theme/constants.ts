@@ -9,9 +9,10 @@ export const typography = {
   semibold: '600' as const,
   bold: '700' as const,
   extrabold: '800' as const,
+  black: '900' as const,
 
   // Font sizes
-  xs: 11,
+  xs: 12,
   sm: 13,
   base: 15,
   md: 16,

@@ -8,13 +8,45 @@ import { storage } from '../api/storage';
 import { colors } from '../theme/colors';
 import { typography, spacing, radius } from '../theme/constants';
 import { ClayCard } from '../components/ClayCard';
-import { StatusBadge } from '../components/StatusBadge';
+import { FloatLogo } from '../components/FloatLogo';
+import { useWeather } from '../context/WeatherContext';
 import {
-  Shield, ShieldCheck, ShieldX, MapPin, TrendingUp,
-  AlertTriangle, Clock, IndianRupee, LogOut, Zap,
+  Shield, CloudRain, Sun, Zap, Thermometer, Wind, Car, LogOut
 } from 'lucide-react-native';
+import { SailboatIcon } from '../components/CartoonyIcons';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
+
+// Weather config logic from dummy
+const weatherThemeConfig = {
+  sunny: {
+    zoneIcon: Sun,
+    zoneColor: '#fef08a',
+    zoneColorText: '#ca8a04',
+    zoneBg: 'rgba(255, 255, 255, 0.4)',
+    zoneTitle: 'Perfect Conditions',
+    zoneDesc: 'Clear skies ahead! Roads are dry and AQI is "Excellent" (12).',
+    temp: '24°C', aqi: '12 AQI', road: 'Smooth', roadColor: '#3b82f6'
+  },
+  rainy: {
+    zoneIcon: CloudRain,
+    zoneColor: '#dbeafe',
+    zoneColorText: '#2563eb',
+    zoneBg: 'rgba(255, 255, 255, 0.4)',
+    zoneTitle: 'Wet Conditions',
+    zoneDesc: 'Light rain in your zone. Roads might be slightly slippery. Ride safe!',
+    temp: '18°C', aqi: '24 AQI', road: 'Wet', roadColor: '#f59e0b'
+  },
+  thunderstorm: {
+    zoneIcon: Zap,
+    zoneColor: '#f3e8ff',
+    zoneColorText: '#9333ea',
+    zoneBg: 'rgba(255, 255, 255, 0.4)',
+    zoneTitle: 'Severe Weather',
+    zoneDesc: 'Thunderstorms active! Heavy disruptions expected. Find shelter.',
+    temp: '15°C', aqi: '35 AQI', road: 'Hazards', roadColor: '#ef4444'
+  }
+};
 
 export default function DashboardScreen({ navigation }: any) {
   const [user, setUser] = useState<any>(null);
@@ -22,6 +54,9 @@ export default function DashboardScreen({ navigation }: any) {
   const [claims, setClaims] = useState<any[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [totalPayout, setTotalPayout] = useState(0);
+
+  const { weather } = useWeather();
+  const currWeather = (weatherThemeConfig as Record<string, any>)[weather] ?? weatherThemeConfig.sunny;
 
   const fetchData = async () => {
     try {
@@ -34,7 +69,6 @@ export default function DashboardScreen({ navigation }: any) {
       setPolicy(pRes.data);
       setClaims(cRes.data || []);
 
-      // Get total payouts
       try {
         const payRes = await apiClient.get('/claims/me/payouts?limit=50');
         const total = (payRes.data || []).reduce(
@@ -44,6 +78,11 @@ export default function DashboardScreen({ navigation }: any) {
       } catch { /* payouts might be empty */ }
     } catch (e) {
       console.error(e);
+      // Keep a visual fallback state so UI never renders a blank page
+      setUser((prev: any) => prev ?? { full_name: 'AJ', h3_home_cell: 'BLR1' });
+      setPolicy((prev: any) => prev ?? null);
+      setClaims((prev: any[]) => (prev.length ? prev : []));
+      setTotalPayout((prev: number) => prev ?? 0);
     }
   };
 
@@ -55,151 +94,117 @@ export default function DashboardScreen({ navigation }: any) {
     setRefreshing(false);
   }, []);
 
-  const handleLogout = async () => {
-    await storage.deleteItem('access_token');
-    await storage.deleteItem('refresh_token');
-    navigation.replace('Login');
-  };
+  const safeUser = user ?? { full_name: 'AJ', h3_home_cell: 'BLR1' };
 
-  if (!user) {
-    return (
-      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-        <Text style={styles.loadingText}>Loading...</Text>
-      </View>
-    );
-  }
-
-  const firstName = user.full_name?.split(' ')[0] || 'Driver';
+  // Get initials for avatar
+  const initials = safeUser.full_name?.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase() || 'AJ';
   const hasCoverage = !!policy;
 
   return (
     <ScrollView
       style={styles.container}
       contentContainerStyle={styles.scrollContent}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       showsVerticalScrollIndicator={false}
     >
-      {/* Header */}
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.greeting}>Hi, {firstName} 👋</Text>
-          <Text style={styles.platformText}>
-            {user.platform?.charAt(0).toUpperCase() + user.platform?.slice(1)} Partner
-          </Text>
-        </View>
-        <TouchableOpacity onPress={handleLogout} style={styles.logoutBtn}>
-          <LogOut size={20} color={colors.textMuted} />
-        </TouchableOpacity>
-      </View>
-
-      {/* Coverage Status — Hero Card */}
-      <ClayCard variant="elevated" style={styles.heroCard}>
-        <View style={styles.heroTop}>
-          <View style={[styles.heroIcon, hasCoverage ? styles.heroIconActive : styles.heroIconInactive]}>
-            {hasCoverage
-              ? <ShieldCheck size={28} color={colors.success} />
-              : <ShieldX size={28} color={colors.danger} />
-            }
+      <View style={{ flex: 1, paddingBottom: 100 }}>
+        {/* Header */}
+        <View style={styles.header}>
+          <FloatLogo />
+          <View style={styles.avatar}>
+            <Text style={styles.avatarText}>{initials}</Text>
           </View>
-          <StatusBadge status={hasCoverage ? 'active' : 'inactive'} size="md" />
         </View>
 
-        <Text style={styles.heroTitle}>
-          {hasCoverage ? 'You\'re Protected' : 'No Active Coverage'}
-        </Text>
-        <Text style={styles.heroSubtitle}>
-          {hasCoverage
-            ? 'Float is monitoring your zone for disruptions'
-            : 'Subscribe to a plan to start earning protection'
-          }
+        {/* Branding Subtitle */}
+        <Text style={styles.brandingGreet}>Hi {safeUser.full_name?.split(' ')[0]},</Text>
+        <Text style={styles.brandingSub}>
+          {weather === 'sunny' ? "We've got you covered. Drive secure! 🛡️" : 
+           weather === 'rainy' ? "Roads are getting wet. We've got your back! ☔" : 
+           "Severe disruption detected. Stay safe, we are calculating! 🌩️"}
         </Text>
 
-        {hasCoverage && policy && (
-          <View style={styles.heroStats}>
-            <View style={styles.heroStat}>
-              <Text style={styles.heroStatLabel}>Plan</Text>
-              <Text style={styles.heroStatValue}>
-                {policy.tier.charAt(0).toUpperCase() + policy.tier.slice(1)}
+        {/* Main Protection Card */}
+        <ClayCard style={styles.heroCard}>
+          <View style={styles.heroGlow} />
+          <View style={styles.heroTop}>
+            <View style={[styles.statusBadge, hasCoverage ? styles.statusActive : styles.statusInactive]}>
+              <Shield size={16} strokeWidth={2.5} color={hasCoverage ? '#15803d' : '#991b1b'} style={{ marginRight: 6 }} />
+              <Text style={[styles.statusBadgeText, hasCoverage ? { color: '#15803d' } : { color: '#991b1b' }]}>
+                {hasCoverage ? "You're Protected" : "No Protection"}
               </Text>
             </View>
-            <View style={styles.heroDivider} />
-            <View style={styles.heroStat}>
-              <Text style={styles.heroStatLabel}>Coverage</Text>
-              <Text style={styles.heroStatValue}>
-                {Math.round(policy.coverage_pct * 100)}%
-              </Text>
-            </View>
-            <View style={styles.heroDivider} />
-            <View style={styles.heroStat}>
-              <Text style={styles.heroStatLabel}>Premium</Text>
-              <Text style={styles.heroStatValue}>₹{policy.weekly_premium}/wk</Text>
+            <View style={styles.activeTag}>
+              <Text style={styles.activeTagText}>{hasCoverage ? 'ACTIVE' : 'INACTIVE'}</Text>
             </View>
           </View>
-        )}
-      </ClayCard>
-
-      {/* Quick Stats */}
-      <View style={styles.statsRow}>
-        <ClayCard style={styles.statCard}>
-          <View style={[styles.statIcon, { backgroundColor: colors.successBg }]}>
-            <IndianRupee size={18} color={colors.success} />
+          
+          <View style={styles.heroBottom}>
+            <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
+               <Text style={styles.priceBig}>{hasCoverage ? `₹${policy.weekly_premium}` : '₹0'}</Text>
+               <Text style={styles.priceSub}>/wk</Text>
+            </View>
+            <View style={styles.sailboatWrap}>
+               <SailboatIcon size={28} color="#2563eb" />
+            </View>
           </View>
-          <Text style={styles.statValue}>₹{totalPayout.toFixed(0)}</Text>
-          <Text style={styles.statLabel}>Total Payouts</Text>
         </ClayCard>
 
-        <ClayCard style={styles.statCard}>
-          <View style={[styles.statIcon, { backgroundColor: colors.primaryLight }]}>
-            <Zap size={18} color={colors.primary} />
+        {/* Stats Grid */}
+        <View style={styles.statsRow}>
+          <ClayCard style={styles.statCard}>
+            <Text style={styles.statLabel}>PAYOUTS</Text>
+            <Text style={styles.statBig}>₹{totalPayout.toFixed(0)}</Text>
+            <View style={styles.progressTrack}>
+               <View style={styles.progressFill} />
+            </View>
+          </ClayCard>
+          
+          <ClayCard style={styles.statCard}>
+            <Text style={styles.statLabel}>RECENT CLAIMS</Text>
+            <Text style={styles.statBig}>{claims.length}</Text>
+            <TouchableOpacity onPress={() => navigation.navigate('Claims')}>
+              <Text style={styles.statLink}>VIEW ALL</Text>
+            </TouchableOpacity>
+          </ClayCard>
+        </View>
+
+        {/* Active Zone Label */}
+        <View style={styles.zoneHeader}>
+          <Text style={styles.zoneTitle}>Active Zone: {safeUser.h3_home_cell?.slice(0,6) || "BLR1"}</Text>
+          <View style={styles.liveTag}>
+            <Zap size={10} color="#9333ea" />
+            <Text style={styles.liveTagText}>LIVE AI</Text>
           </View>
-          <Text style={styles.statValue}>{claims.length}</Text>
-          <Text style={styles.statLabel}>Recent Claims</Text>
+        </View>
+
+        {/* Dynamic Weather Card */}
+        <ClayCard style={{ padding: 0, overflow: 'hidden' }}>
+           <View style={[styles.wTop, { backgroundColor: currWeather.zoneBg }]}>
+              <View style={[styles.wIconWrap, { backgroundColor: currWeather.zoneColor }]}>
+                 <currWeather.zoneIcon size={32} color={currWeather.zoneColorText} strokeWidth={2} />
+              </View>
+              <View style={{ flex: 1 }}>
+                 <Text style={styles.wTitle}>{currWeather.zoneTitle}</Text>
+                 <Text style={styles.wDesc}>{currWeather.zoneDesc}</Text>
+              </View>
+           </View>
+           <View style={[styles.wBottom, { backgroundColor: 'rgba(255, 255, 255, 0.2)' }]}>
+              <View style={styles.wCell}>
+                 <Thermometer color="#3b82f6" size={20} style={{ marginBottom: 4 }} />
+                 <Text style={styles.wCellValue}>{currWeather.temp}</Text>
+              </View>
+              <View style={[styles.wCell, { borderLeftWidth: 1, borderRightWidth: 1, borderColor: 'rgba(255,255,255,0.4)' }]}>
+                 <Wind color="#14b8a6" size={20} style={{ marginBottom: 4 }} />
+                 <Text style={styles.wCellValue}>{currWeather.aqi}</Text>
+              </View>
+              <View style={styles.wCell}>
+                 <Car color={currWeather.roadColor} size={20} style={{ marginBottom: 4 }} />
+                 <Text style={styles.wCellValue}>{currWeather.road}</Text>
+              </View>
+           </View>
         </ClayCard>
       </View>
-
-      {/* Zone Info */}
-      <ClayCard style={styles.zoneCard}>
-        <View style={styles.zoneRow}>
-          <View style={[styles.statIcon, { backgroundColor: colors.accentLight }]}>
-            <MapPin size={18} color={colors.accent} />
-          </View>
-          <View style={styles.zoneText}>
-            <Text style={styles.zoneTitle}>Active Zone</Text>
-            <Text style={styles.zoneCell}>{user.h3_home_cell || 'Not set'}</Text>
-          </View>
-        </View>
-        <Text style={styles.zoneInfo}>
-          Our AI monitors weather, AQI, and road conditions in your zone 24/7
-        </Text>
-      </ClayCard>
-
-      {/* Recent Claims */}
-      {claims.length > 0 && (
-        <View style={styles.recentSection}>
-          <Text style={styles.sectionTitle}>Recent Activity</Text>
-          {claims.slice(0, 3).map((claim) => {
-            const date = new Date(claim.created_at).toLocaleDateString(undefined, {
-              month: 'short', day: 'numeric',
-            });
-            return (
-              <ClayCard key={claim.id} variant="outlined" style={styles.claimMini}>
-                <View style={styles.claimMiniRow}>
-                  <View style={styles.claimMiniLeft}>
-                    <Text style={styles.claimMiniTitle}>Claim #{claim.id}</Text>
-                    <Text style={styles.claimMiniDate}>{date}</Text>
-                  </View>
-                  <View style={styles.claimMiniRight}>
-                    <StatusBadge status={claim.status} />
-                    <Text style={styles.claimMiniAmount}>
-                      ₹{claim.payout_estimate?.toFixed(0) || '0'}
-                    </Text>
-                  </View>
-                </View>
-              </ClayCard>
-            );
-          })}
-        </View>
-      )}
     </ScrollView>
   );
 }
@@ -207,204 +212,267 @@ export default function DashboardScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: 'transparent',
   },
   scrollContent: {
-    paddingHorizontal: spacing.lg,
+    paddingHorizontal: 20,
     paddingTop: Platform.OS === 'ios' ? 60 : 44,
-    paddingBottom: 100,
-  },
-  loadingText: {
-    color: colors.textMuted,
-    fontSize: typography.md,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: spacing.xl,
+    marginBottom: 8,
+    marginTop: 8,
+    zIndex: 10,
   },
-  greeting: {
-    fontSize: typography.xxl,
-    fontWeight: '800',
-    color: colors.text,
-  },
-  platformText: {
-    fontSize: typography.sm,
-    color: colors.textMuted,
-    marginTop: 2,
-  },
-  logoutBtn: {
+  avatar: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: colors.surfaceElevated,
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.7)',
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 }
+  },
+  avatarText: {
+    fontWeight: '900',
+    fontSize: 16,
+    color: '#2563ea'
+  },
+  brandingGreet: {
+    fontSize: 24,
+    fontWeight: '900',
+    color: '#1e293b',
+    marginTop: 8,
+  },
+  brandingSub: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#475569',
+    marginBottom: 20,
   },
 
   // Hero Card
   heroCard: {
-    padding: spacing.xl,
-    marginBottom: spacing.lg,
+    padding: 24,
+    marginBottom: 20,
+    overflow: 'hidden',
+  },
+  heroGlow: {
+    position: 'absolute',
+    top: -40,
+    right: -40,
+    width: 160,
+    height: 160,
+    backgroundColor: '#bbf7d0',
+    borderRadius: 80,
+    opacity: 0.4,
   },
   heroTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: spacing.base,
+    alignItems: 'flex-start',
+    marginBottom: 24,
+    zIndex: 2,
   },
-  heroIcon: {
-    width: 52,
-    height: 52,
-    borderRadius: 16,
+  statusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 100,
+    borderWidth: 1,
+  },
+  statusActive: {
+    backgroundColor: '#dcfce7',
+    borderColor: '#bbf7d0',
+  },
+  statusInactive: {
+    backgroundColor: '#fee2e2',
+    borderColor: '#fecaca',
+  },
+  statusBadgeText: {
+    fontWeight: 'bold',
+    fontSize: 14,
+  },
+  activeTag: {
+    backgroundColor: '#2563eb',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 100,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+  },
+  activeTagText: {
+    color: '#FFF',
+    fontWeight: '900',
+    fontSize: 10,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  heroBottom: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    zIndex: 2,
+  },
+  priceBig: {
+    fontSize: 52,
+    fontWeight: '900',
+    color: '#1e293b',
+    letterSpacing: -2,
+    lineHeight: 52,
+  },
+  priceSub: {
+    fontSize: 20,
+    fontWeight: '900',
+    color: '#64748b',
+    marginLeft: 4,
+    marginBottom: 4,
+  },
+  sailboatWrap: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#dbeafe',
+    borderWidth: 2,
+    borderColor: '#FFF',
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  heroIconActive: {
-    backgroundColor: colors.successBg,
-  },
-  heroIconInactive: {
-    backgroundColor: colors.dangerBg,
-  },
-  heroTitle: {
-    fontSize: typography.xl,
-    fontWeight: '700',
-    color: colors.text,
-    marginBottom: 4,
-  },
-  heroSubtitle: {
-    fontSize: typography.sm,
-    color: colors.textMuted,
-    lineHeight: 20,
-  },
-  heroStats: {
-    flexDirection: 'row',
-    marginTop: spacing.lg,
-    backgroundColor: colors.surfaceElevated,
-    borderRadius: radius.lg,
-    padding: spacing.base,
-  },
-  heroStat: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  heroDivider: {
-    width: 1,
-    backgroundColor: colors.border,
-  },
-  heroStatLabel: {
-    fontSize: typography.xs,
-    color: colors.textMuted,
-    marginBottom: 4,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  heroStatValue: {
-    fontSize: typography.md,
-    fontWeight: '700',
-    color: colors.text,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
   },
 
-  // Stats Row
+  // Stats Grid
   statsRow: {
     flexDirection: 'row',
-    gap: spacing.md,
-    marginBottom: spacing.lg,
+    gap: 16,
+    marginBottom: 24,
   },
   statCard: {
     flex: 1,
-    padding: spacing.base,
-    alignItems: 'center',
-  },
-  statIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
+    padding: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: spacing.sm,
-  },
-  statValue: {
-    fontSize: typography.xl,
-    fontWeight: '800',
-    color: colors.text,
-    marginBottom: 2,
   },
   statLabel: {
-    fontSize: typography.xs,
-    color: colors.textMuted,
+    fontSize: 11,
+    fontWeight: '900',
+    color: '#94a3b8',
     textTransform: 'uppercase',
-    letterSpacing: 0.3,
+    letterSpacing: 1,
+    marginBottom: 8,
+  },
+  statBig: {
+    fontSize: 32,
+    fontWeight: '900',
+    color: '#1e293b',
+    marginBottom: 12,
+  },
+  progressTrack: {
+    width: 64,
+    height: 6,
+    backgroundColor: '#e2e8f0',
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    width: '30%',
+    height: '100%',
+    backgroundColor: '#3b82f6',
+  },
+  statLink: {
+    fontSize: 12,
+    fontWeight: '900',
+    color: '#3b82f6',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
   },
 
-  // Zone
-  zoneCard: {
-    padding: spacing.base,
-    marginBottom: spacing.lg,
-  },
-  zoneRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: spacing.sm,
-  },
-  zoneText: {
-    marginLeft: spacing.md,
-  },
-  zoneTitle: {
-    fontSize: typography.base,
-    fontWeight: '600',
-    color: colors.text,
-  },
-  zoneCell: {
-    fontSize: typography.xs,
-    color: colors.textMuted,
-    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
-  },
-  zoneInfo: {
-    fontSize: typography.sm,
-    color: colors.textMuted,
-    lineHeight: 20,
-    marginTop: spacing.xs,
-  },
-
-  // Recent Claims
-  recentSection: {
-    marginBottom: spacing.xl,
-  },
-  sectionTitle: {
-    fontSize: typography.lg,
-    fontWeight: '700',
-    color: colors.text,
-    marginBottom: spacing.md,
-  },
-  claimMini: {
-    padding: spacing.base,
-    marginBottom: spacing.sm,
-  },
-  claimMiniRow: {
+  // Active Zone
+  zoneHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  claimMiniLeft: {},
-  claimMiniTitle: {
-    fontSize: typography.base,
-    fontWeight: '600',
-    color: colors.text,
-  },
-  claimMiniDate: {
-    fontSize: typography.xs,
-    color: colors.textMuted,
-    marginTop: 2,
-  },
-  claimMiniRight: {
     alignItems: 'flex-end',
-    gap: spacing.xs,
+    marginBottom: 12,
+    paddingHorizontal: 4,
   },
-  claimMiniAmount: {
-    fontSize: typography.md,
-    fontWeight: '700',
-    color: colors.success,
+  zoneTitle: {
+    fontSize: 20,
+    fontWeight: '900',
+    color: '#1e293b',
   },
+  liveTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#f3e8ff',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 100,
+    borderWidth: 1,
+    borderColor: '#FFF',
+  },
+  liveTagText: {
+    color: '#7e22ce',
+    fontWeight: '900',
+    fontSize: 10,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  wTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.4)',
+    gap: 16,
+  },
+  wIconWrap: {
+    width: 64,
+    height: 64,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 5,
+    shadowOffset: { width: 0, height: 2 },
+  },
+  wTitle: {
+    fontWeight: '900',
+    fontSize: 18,
+    color: '#1e293b',
+  },
+  wDesc: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#475569',
+    marginTop: 4,
+    lineHeight: 20,
+  },
+  wBottom: {
+    flexDirection: 'row',
+  },
+  wCell: {
+    flex: 1,
+    padding: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  wCellValue: {
+    fontWeight: '900',
+    fontSize: 16,
+    color: '#1e293b',
+  }
 });

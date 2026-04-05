@@ -1,49 +1,47 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
-  View, Text, StyleSheet, FlatList, RefreshControl,
-  TouchableOpacity, Platform, Modal,
+  View, Text, StyleSheet, RefreshControl, ScrollView,
+  TouchableOpacity, Modal, Platform
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { apiClient } from '../api/client';
 import { colors } from '../theme/colors';
-import { typography, spacing, radius } from '../theme/constants';
 import { ClayCard } from '../components/ClayCard';
 import { StatusBadge } from '../components/StatusBadge';
-import { ClayButton } from '../components/ClayButton';
-import {
-  CloudRain, Wind, Thermometer, AlertTriangle, Clock,
-  IndianRupee, ShieldCheck, X, FileText, ChevronRight,
-} from 'lucide-react-native';
-
-// Map event types to human-readable labels and icons
-const EVENT_TYPE_CONFIG: Record<string, { label: string; icon: any; color: string }> = {
-  rain: { label: 'Heavy Rain', icon: CloudRain, color: colors.info },
-  aqi: { label: 'Poor Air Quality', icon: Wind, color: colors.warning },
-  heat: { label: 'Extreme Heat', icon: Thermometer, color: colors.danger },
-  acts_of_god: { label: 'Natural Disaster', icon: AlertTriangle, color: colors.danger },
-  road_closure: { label: 'Road Closure', icon: AlertTriangle, color: colors.warning },
-  protest: { label: 'Protest/Curfew', icon: AlertTriangle, color: colors.warning },
-};
+import { SailboatIcon } from '../components/CartoonyIcons';
+import { Sun, DollarSign, Shield, X } from 'lucide-react-native';
 
 export default function ClaimsScreen() {
   const [claims, setClaims] = useState<any[]>([]);
-  const [payouts, setPayouts] = useState<any[]>([]);
   const [refreshing, setRefreshing] = useState(false);
-  const [selectedClaim, setSelectedClaim] = useState<any>(null);
+  const [totalEarned, setTotalEarned] = useState(0);
+  const [selectedClaim, setSelectedClaim] = useState<any | null>(null);
 
   const fetchData = async () => {
     try {
-      const [cRes, pRes] = await Promise.all([
-        apiClient.get('/claims/me'),
-        apiClient.get('/claims/me/payouts'),
-      ]);
+      const cRes = await apiClient.get('/claims/me?limit=20');
       setClaims(cRes.data || []);
-      setPayouts(pRes.data || []);
+
+      try {
+        const pRes = await apiClient.get('/claims/me/payouts?limit=50');
+        const payouts = pRes.data || [];
+        const total = payouts.reduce((sum: number, p: any) => sum + (p.final_amount || 0), 0);
+        setTotalEarned(total);
+      } catch { /* ignore */ }
     } catch (e) {
-      console.error('Failed to fetch claims/payouts', e);
+      console.error(e);
     }
   };
 
   useEffect(() => { fetchData(); }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        setSelectedClaim(null);
+      };
+    }, [])
+  );
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -51,186 +49,110 @@ export default function ClaimsScreen() {
     setRefreshing(false);
   }, []);
 
-  const totalEarned = payouts.reduce((sum, p) => sum + (p.final_amount || 0), 0);
-  const approvedCount = claims.filter(c =>
-    ['auto_approved', 'paid'].includes(c.status)
-  ).length;
-
-  const renderClaim = ({ item }: { item: any }) => {
-    const payout = payouts.find(p => p.claim_id === item.id);
-    const date = new Date(item.created_at);
-    const dateStr = date.toLocaleDateString(undefined, {
-      month: 'short', day: 'numeric',
-    });
-    const timeStr = date.toLocaleTimeString(undefined, {
-      hour: '2-digit', minute: '2-digit',
-    });
-
-    // Determine the display amount
-    const amount = payout ? payout.final_amount : item.payout_estimate;
-    const isPaid = !!payout;
-
-    return (
-      <TouchableOpacity
-        activeOpacity={0.7}
-        onPress={() => setSelectedClaim({ ...item, payout })}
-      >
-        <ClayCard style={styles.claimCard}>
-          <View style={styles.claimRow}>
-            {/* Left: Icon + Info */}
-            <View style={styles.claimLeft}>
-              <View style={[styles.claimIcon, { backgroundColor: colors.primaryLight }]}>
-                <FileText size={18} color={colors.primary} />
-              </View>
-              <View style={styles.claimInfo}>
-                <Text style={styles.claimTitle}>Claim #{item.id}</Text>
-                <View style={styles.claimDateRow}>
-                  <Clock size={11} color={colors.textMuted} />
-                  <Text style={styles.claimDate}>{dateStr} · {timeStr}</Text>
-                </View>
-              </View>
-            </View>
-
-            {/* Right: Amount + Status */}
-            <View style={styles.claimRight}>
-              <Text style={[styles.claimAmount, isPaid ? styles.amountPaid : styles.amountPending]}>
-                {isPaid ? '' : '~'}₹{amount?.toFixed(0) || '0'}
-              </Text>
-              <StatusBadge status={item.status} />
-            </View>
-          </View>
-        </ClayCard>
-      </TouchableOpacity>
-    );
-  };
+  const pendingAmount = claims
+    .filter(c => c.status === 'pending' || c.status === 'processing')
+    .reduce((sum, c) => sum + (c.payout_estimate || 0), 0);
+    
+  const activeAlertsCount = claims.filter(c => c.status === 'pending' || c.status === 'processing').length;
 
   return (
     <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.title}>Claims</Text>
-        <Text style={styles.subtitle}>Auto-generated when disruptions occur</Text>
-      </View>
-
-      {/* Summary Cards */}
-      {claims.length > 0 && (
-        <View style={styles.summaryRow}>
-          <ClayCard style={styles.summaryCard}>
-            <Text style={styles.summaryValue}>₹{totalEarned.toFixed(0)}</Text>
-            <Text style={styles.summaryLabel}>Total Earned</Text>
-          </ClayCard>
-          <ClayCard style={styles.summaryCard}>
-            <Text style={styles.summaryValue}>{approvedCount}</Text>
-            <Text style={styles.summaryLabel}>Approved</Text>
-          </ClayCard>
-          <ClayCard style={styles.summaryCard}>
-            <Text style={styles.summaryValue}>{claims.length}</Text>
-            <Text style={styles.summaryLabel}>Total</Text>
-          </ClayCard>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.header}>
+           <Text style={styles.title}>Claims</Text>
         </View>
-      )}
 
-      {/* Claims List */}
-      <FlatList
-        data={claims}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={renderClaim}
-        contentContainerStyle={styles.listContent}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />
-        }
-        ListEmptyComponent={
-          <View style={styles.emptyState}>
-            <View style={styles.emptyIconBox}>
-              <ShieldCheck size={40} color={colors.textLight} />
-            </View>
-            <Text style={styles.emptyTitle}>No Claims Yet</Text>
-            <Text style={styles.emptyText}>
-              When weather, AQI, or road issues happen in your zone, Float automatically creates a claim and calculates your payout.
-            </Text>
+        {claims.length === 0 ? (
+          <ClayCard style={styles.emptyCard}>
+             <View style={styles.emptyIconWrap}>
+                 <SailboatIcon size={40} color="#3b82f6" style={{ marginLeft: 4 }} />
+             </View>
+             <Text style={styles.emptyTitle}>No Claims Yet</Text>
+             <Text style={styles.emptyText}>
+               When weather, AQI, or road issues happen in your zone, Float automatically creates a claim and calculates your payout.
+             </Text>
+          </ClayCard>
+        ) : (
+          <View style={styles.listsContainer}>
+            {claims.map((claim) => (
+               <TouchableOpacity key={claim.id} onPress={() => setSelectedClaim(claim)} activeOpacity={0.8}>
+                 <ClayCard style={styles.claimRow}>
+                    <View>
+                       <Text style={styles.claimRowId}>Claim #{claim.id}</Text>
+                       <Text style={styles.claimRowDate}>{new Date(claim.created_at).toLocaleDateString()}</Text>
+                    </View>
+                    <View style={{ alignItems: 'flex-end' }}>
+                       <StatusBadge status={claim.status} />
+                       <Text style={styles.claimRowAmount}>₹{claim.payout_estimate?.toFixed(0) || '0'}</Text>
+                    </View>
+                 </ClayCard>
+               </TouchableOpacity>
+            ))}
           </View>
-        }
-      />
+        )}
 
-      {/* Claim Detail Modal */}
-      <Modal visible={!!selectedClaim} transparent animationType="slide">
-        <View style={styles.modalOverlay}>
-          <ClayCard variant="elevated" style={styles.modalCard}>
-            {selectedClaim && (
-              <>
-                <View style={styles.modalHeader}>
-                  <Text style={styles.modalTitle}>Claim #{selectedClaim.id}</Text>
-                  <TouchableOpacity onPress={() => setSelectedClaim(null)} style={styles.closeBtn}>
-                    <X size={20} color={colors.textMuted} />
-                  </TouchableOpacity>
-                </View>
-
-                <StatusBadge status={selectedClaim.status} size="md" />
-
-                <View style={styles.modalDivider} />
-
-                {/* Details Grid */}
-                <View style={styles.detailGrid}>
-                  <View style={styles.detailItem}>
-                    <Text style={styles.detailLabel}>Trigger Event</Text>
-                    <Text style={styles.detailValue}>#{selectedClaim.trigger_event_id}</Text>
-                  </View>
-                  <View style={styles.detailItem}>
-                    <Text style={styles.detailLabel}>Policy</Text>
-                    <Text style={styles.detailValue}>#{selectedClaim.policy_id}</Text>
-                  </View>
-                  <View style={styles.detailItem}>
-                    <Text style={styles.detailLabel}>Fraud Score</Text>
-                    <Text style={[
-                      styles.detailValue,
-                      { color: selectedClaim.fraud_score > 50 ? colors.danger : colors.success },
-                    ]}>
-                      {selectedClaim.fraud_score?.toFixed(1) || '0.0'}
-                    </Text>
-                  </View>
-                  <View style={styles.detailItem}>
-                    <Text style={styles.detailLabel}>Spoof Check</Text>
-                    <Text style={[
-                      styles.detailValue,
-                      { color: selectedClaim.spoof_score > 0.5 ? colors.danger : colors.success },
-                    ]}>
-                      {selectedClaim.spoof_score?.toFixed(2) || '0.00'}
-                    </Text>
-                  </View>
-                </View>
-
-                <View style={styles.modalDivider} />
-
-                {/* Payout */}
-                <View style={styles.payoutSection}>
-                  {selectedClaim.payout ? (
-                    <>
-                      <Text style={styles.payoutLabel}>Disbursed Payout</Text>
-                      <Text style={styles.payoutAmount}>₹{selectedClaim.payout.final_amount?.toFixed(2)}</Text>
-                      <Text style={styles.payoutDetail}>
-                        Base: ₹{selectedClaim.payout.base_amount?.toFixed(2)} × {selectedClaim.payout.tier_multiplier}x tier
-                      </Text>
-                    </>
-                  ) : (
-                    <>
-                      <Text style={styles.payoutLabel}>Estimated Payout</Text>
-                      <Text style={styles.payoutAmountEst}>~₹{selectedClaim.payout_estimate?.toFixed(2) || '0.00'}</Text>
-                      <Text style={styles.payoutDetail}>Final amount depends on your coverage tier</Text>
-                    </>
-                  )}
-                </View>
-
-                <ClayButton
-                  title="Close"
-                  variant="secondary"
-                  size="md"
-                  onPress={() => setSelectedClaim(null)}
-                  style={{ marginTop: spacing.lg }}
-                />
-              </>
-            )}
-          </ClayCard>
+        <View style={styles.gridCards}>
+           <ClayCard style={styles.gridCard}>
+              <Sun size={28} color="#eab308" strokeWidth={2.5} style={{ marginBottom: 12 }} />
+              <Text style={styles.gridVal}>{activeAlertsCount}</Text>
+              <Text style={styles.gridLabel}>ACTIVE ALERTS</Text>
+           </ClayCard>
+           <ClayCard style={styles.gridCard}>
+              <DollarSign size={28} color="#a855f7" strokeWidth={2.5} style={{ marginBottom: 12 }} />
+              <Text style={styles.gridVal}>₹{pendingAmount.toFixed(0)}</Text>
+              <Text style={styles.gridLabel}>PENDING PAYOUTS</Text>
+           </ClayCard>
         </View>
+
+        <ClayCard style={styles.protectedBg}>
+           <View style={styles.protectedIconWrap}>
+              <Shield size={24} color="#a16207" strokeWidth={2.5} />
+           </View>
+           <View style={{ marginLeft: 16 }}>
+              <Text style={styles.protectedTitle}>You're Protected</Text>
+              <Text style={styles.protectedSub}>Monitoring 24/7 in your current zone.</Text>
+           </View>
+        </ClayCard>
+
+      </ScrollView>
+
+      {/* Detail Modal */}
+      <Modal visible={!!selectedClaim} transparent animationType="slide" onRequestClose={() => setSelectedClaim(null)}>
+         <View style={styles.modalOverlay}>
+            <ClayCard style={styles.modalCard}>
+               {selectedClaim && (
+                 <>
+                   <View style={styles.mHeader}>
+                      <Text style={styles.mTitle}>Claim #{selectedClaim.id}</Text>
+                      <TouchableOpacity onPress={() => setSelectedClaim(null)} style={styles.mClose}>
+                         <X size={20} color="#64748b" />
+                      </TouchableOpacity>
+                   </View>
+                   <StatusBadge status={selectedClaim.status} size="md" />
+                   
+                   <View style={styles.mGrid}>
+                      <View style={styles.mItem}>
+                         <Text style={styles.mItemL}>Trigger Event</Text>
+                         <Text style={styles.mItemV}>#{selectedClaim.trigger_event_id}</Text>
+                      </View>
+                      <View style={styles.mItem}>
+                         <Text style={styles.mItemL}>Fraud Score</Text>
+                         <Text style={styles.mItemV}>{selectedClaim.fraud_score?.toFixed(1) || '0.0'}</Text>
+                      </View>
+                   </View>
+                   
+                   <View style={styles.mPayoutBox}>
+                      <Text style={styles.mPayoutLabel}>Estimated Payout</Text>
+                      <Text style={styles.mPayoutAmount}>₹{selectedClaim.payout_estimate?.toFixed(2)}</Text>
+                   </View>
+                 </>
+               )}
+            </ClayCard>
+         </View>
       </Modal>
     </View>
   );
@@ -239,214 +161,195 @@ export default function ClaimsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: 'transparent',
+  },
+  scrollContent: {
+    paddingHorizontal: 20,
+    paddingTop: Platform.OS === 'ios' ? 60 : 44,
+    paddingBottom: 120,
   },
   header: {
-    paddingHorizontal: spacing.lg,
-    paddingTop: Platform.OS === 'ios' ? 60 : 44,
-    paddingBottom: spacing.base,
+    marginBottom: 24,
+    marginTop: 8,
   },
   title: {
-    fontSize: typography.xxl,
-    fontWeight: '800',
-    color: colors.text,
-    marginBottom: spacing.xs,
+    fontSize: 36,
+    fontWeight: '900',
+    color: '#1e293b',
+    letterSpacing: -1,
   },
-  subtitle: {
-    fontSize: typography.base,
-    color: colors.textMuted,
-  },
-
-  // Summary
-  summaryRow: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-    paddingHorizontal: spacing.lg,
-    marginBottom: spacing.base,
-  },
-  summaryCard: {
-    flex: 1,
-    padding: spacing.md,
+  emptyCard: {
+    padding: 32,
+    marginBottom: 24,
     alignItems: 'center',
+    textAlign: 'center',
   },
-  summaryValue: {
-    fontSize: typography.lg,
-    fontWeight: '800',
-    color: colors.text,
-    marginBottom: 2,
+  emptyIconWrap: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#dbeafe',
+    borderWidth: 2,
+    borderColor: '#FFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 24,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 }, // inner shadow analog
   },
-  summaryLabel: {
-    fontSize: typography.xs,
-    color: colors.textMuted,
-    textTransform: 'uppercase',
-    letterSpacing: 0.3,
+  emptyTitle: {
+    fontSize: 24,
+    fontWeight: '900',
+    color: '#1e293b',
+    marginBottom: 12,
   },
-
-  // List
-  listContent: {
-    padding: spacing.lg,
-    paddingBottom: 100,
-    gap: spacing.sm,
+  emptyText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#475569',
+    textAlign: 'center',
+    lineHeight: 22,
   },
-  claimCard: {
-    padding: spacing.base,
+  gridCards: {
+    flexDirection: 'row',
+    gap: 16,
+    marginBottom: 24,
+  },
+  gridCard: {
+    flex: 1,
+    padding: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  gridVal: {
+    fontSize: 32,
+    fontWeight: '900',
+    color: '#1e293b',
+    marginBottom: 4,
+  },
+  gridLabel: {
+    fontSize: 10,
+    fontWeight: '900',
+    color: '#94a3b8',
+    letterSpacing: 2,
+  },
+  protectedBg: {
+    backgroundColor: 'rgba(253, 224, 71, 0.8)', // yellow-300/80
+    borderColor: '#fef08a',
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 20,
+    marginBottom: 32,
+  },
+  protectedIconWrap: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  protectedTitle: {
+    fontSize: 18,
+    fontWeight: '900',
+    color: '#1e293b',
+  },
+  protectedSub: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#334155',
+    marginTop: 4,
+  },
+  listsContainer: {
+    marginBottom: 24,
   },
   claimRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    padding: 16,
+    marginBottom: 12,
   },
-  claimLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
+  claimRowId: {
+    fontSize: 16,
+    fontWeight: '900',
+    color: '#1e293b',
   },
-  claimIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: spacing.md,
+  claimRowDate: {
+    fontSize: 12,
+    color: '#64748b',
+    fontWeight: 'bold',
+    marginTop: 4,
   },
-  claimInfo: {},
-  claimTitle: {
-    fontSize: typography.base,
-    fontWeight: '600',
-    color: colors.text,
+  claimRowAmount: {
+    fontSize: 16,
+    fontWeight: '900',
+    color: '#15803d',
+    marginTop: 4,
   },
-  claimDateRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    marginTop: 3,
-  },
-  claimDate: {
-    fontSize: typography.xs,
-    color: colors.textMuted,
-  },
-  claimRight: {
-    alignItems: 'flex-end',
-    gap: spacing.xs,
-  },
-  claimAmount: {
-    fontSize: typography.md,
-    fontWeight: '700',
-  },
-  amountPaid: {
-    color: colors.success,
-  },
-  amountPending: {
-    color: colors.textSecondary,
-  },
-
-  // Empty State
-  emptyState: {
-    alignItems: 'center',
-    paddingVertical: spacing.xxxxl,
-    paddingHorizontal: spacing.xl,
-  },
-  emptyIconBox: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: colors.surfaceElevated,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: spacing.lg,
-  },
-  emptyTitle: {
-    fontSize: typography.xl,
-    fontWeight: '700',
-    color: colors.text,
-    marginBottom: spacing.sm,
-  },
-  emptyText: {
-    fontSize: typography.base,
-    color: colors.textMuted,
-    textAlign: 'center',
-    lineHeight: 22,
-  },
-
-  // Modal
   modalOverlay: {
     flex: 1,
-    backgroundColor: colors.overlay,
+    backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'flex-end',
   },
   modalCard: {
-    padding: spacing.xl,
+    backgroundColor: '#FFF',
     borderBottomLeftRadius: 0,
     borderBottomRightRadius: 0,
-    paddingBottom: Platform.OS === 'ios' ? 40 : spacing.xl,
+    padding: 24,
+    paddingBottom: Platform.OS === 'ios' ? 40 : 24,
   },
-  modalHeader: {
-    flexDirection: 'row',
+  mHeader: {
+    flexDirection: 'row', 
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: spacing.md,
+    marginBottom: 16,
   },
-  modalTitle: {
-    fontSize: typography.xl,
-    fontWeight: '700',
-    color: colors.text,
+  mTitle: {
+    fontSize: 24,
+    fontWeight: '900',
   },
-  closeBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: colors.surfaceElevated,
-    alignItems: 'center',
-    justifyContent: 'center',
+  mClose: {
+    padding: 8,
   },
-  modalDivider: {
-    height: 1,
-    backgroundColor: colors.border,
-    marginVertical: spacing.lg,
-  },
-  detailGrid: {
+  mGrid: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.base,
+    marginTop: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#e2e8f0',
+    paddingTop: 20,
   },
-  detailItem: {
-    width: '45%',
+  mItem: {
+    flex: 1,
   },
-  detailLabel: {
-    fontSize: typography.xs,
-    color: colors.textMuted,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
+  mItemL: {
+    fontSize: 12,
+    color: '#64748b',
+    fontWeight: '900',
     marginBottom: 4,
   },
-  detailValue: {
-    fontSize: typography.md,
-    fontWeight: '700',
-    color: colors.text,
+  mItemV: {
+    fontSize: 16,
+    fontWeight: '900',
   },
-  payoutSection: {
+  mPayoutBox: {
+    backgroundColor: '#f8fafc',
+    borderRadius: 16,
+    padding: 16,
+    marginTop: 20,
     alignItems: 'center',
   },
-  payoutLabel: {
-    fontSize: typography.sm,
-    color: colors.textMuted,
-    marginBottom: spacing.xs,
+  mPayoutLabel: {
+    fontSize: 12,
+    color: '#64748b',
+    fontWeight: '900',
+    marginBottom: 4,
   },
-  payoutAmount: {
+  mPayoutAmount: {
     fontSize: 32,
-    fontWeight: '800',
-    color: colors.success,
-    marginBottom: spacing.xs,
-  },
-  payoutAmountEst: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: colors.textSecondary,
-    marginBottom: spacing.xs,
-  },
-  payoutDetail: {
-    fontSize: typography.sm,
-    color: colors.textMuted,
-    textAlign: 'center',
-  },
+    fontWeight: '900',
+    color: '#10b981',
+  }
 });

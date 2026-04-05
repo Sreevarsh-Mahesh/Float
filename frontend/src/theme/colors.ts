@@ -1,63 +1,67 @@
 /**
  * Float Design System — Color Palette
  * 
- * Clean, professional light theme with indigo/blue tones.
- * Designed for trust & readability on delivery partner devices.
+ * Cartoony, soft UI style
  */
 export const colors = {
   // Brand
-  primary: '#4F46E5',        // Indigo 600 — trust, reliability
-  primaryDark: '#3730A3',    // Indigo 800
-  primaryLight: '#EEF2FF',   // Indigo 50
-  primaryMid: '#818CF8',     // Indigo 400
+  primary: '#3B82F6',        // Blue 500
+  primaryDark: '#2563EB',    // Blue 600
+  primaryLight: '#DBEAFE',   // Blue 100
+  primaryMid: '#60A5FA',     // Blue 400
 
   // Accent
-  accent: '#06B6D4',         // Cyan 500 — freshness
-  accentLight: '#ECFEFF',    // Cyan 50
+  accent: '#F59E0B',         // Amber 500
+  accentLight: '#FEF3C7',    // Amber 100
 
   // Neutral / Surfaces
-  background: '#F8FAFC',     // Slate 50
-  surface: '#FFFFFF',
-  surfaceElevated: '#F1F5F9',// Slate 100
+  background: '#E0F2FE',     // Light Blue Sunny Default
+  backgroundSunny: '#E0F2FE',
+  backgroundRainy: '#CBD5E1',
+  backgroundStormy: '#818CF8',
+  
+  surface: 'rgba(255, 255, 255, 0.9)', // glass-card
+  surfaceSolid: '#FFFFFF',
+  surfaceElevated: 'rgba(255, 255, 255, 0.8)',
 
   // Text Hierarchy
-  text: '#0F172A',           // Slate 900
+  text: '#1E293B',           // Slate 800
+  textLightMode: '#0F172A',
   textSecondary: '#475569',  // Slate 600
   textMuted: '#94A3B8',      // Slate 400
   textLight: '#CBD5E1',      // Slate 300
   textOnPrimary: '#FFFFFF',
 
   // Status
-  success: '#059669',        // Emerald 600
-  successLight: '#D1FAE5',   // Emerald 100
-  successBg: '#ECFDF5',      // Emerald 50
-  warning: '#D97706',        // Amber 600
-  warningLight: '#FEF3C7',   // Amber 100
-  warningBg: '#FFFBEB',      // Amber 50
-  danger: '#DC2626',         // Red 600
-  dangerLight: '#FEE2E2',    // Red 100
-  dangerBg: '#FEF2F2',       // Red 50
-  info: '#2563EB',           // Blue 600
-  infoLight: '#DBEAFE',      // Blue 100
+  success: '#059669',        
+  successLight: '#D1FAE5',   
+  successBg: '#ECFDF5',      
+  warning: '#D97706',        
+  warningLight: '#FEF3C7',   
+  warningBg: '#FFFBEB',      
+  danger: '#DC2626',         
+  dangerLight: '#FEE2E2',    
+  dangerBg: '#FEF2F2',       
+  info: '#2563EB',           
+  infoLight: '#DBEAFE',      
 
   // Borders & Dividers
-  border: '#E2E8F0',         // Slate 200
-  borderLight: '#F1F5F9',    // Slate 100
+  border: 'rgba(255, 255, 255, 0.7)',     // Cartoony border
+  borderLight: 'rgba(255, 255, 255, 0.5)',
+  borderHeavy: 'rgba(15, 23, 42, 0.15)', // Added to satisfy TS requirements
 
   // Shadows
   shadowLight: '#FFFFFF',
-  shadowDark: 'rgba(15, 23, 42, 0.08)',
-  shadowMedium: 'rgba(15, 23, 42, 0.12)',
+  shadowDark: 'rgba(0, 0, 0, 0.08)',
+  shadowMedium: 'rgba(0, 0, 0, 0.08)',
 
   // Overlay
   overlay: 'rgba(15, 23, 42, 0.4)',
 
-  // Tier Colors
-  tierBasic: '#F59E0B',      // Amber
-  tierProtection: '#4F46E5', // Indigo
-  tierAdvanced: '#059669',   // Emerald
-
   // Legacy compat
+  tierBasic: '#F59E0B',      
+  tierProtection: '#3B82F6', 
+  tierAdvanced: '#8B5CF6',
   secondary: '#F43F5E',
   tertiary: '#14B8A6',
 };

@@ -21,5 +21,6 @@ class PolicyOut(BaseModel):
     is_active: bool
     activated_at: datetime
     expires_at: datetime | None
+    last_payment_at: datetime | None = None
 
     model_config = {"from_attributes": True}

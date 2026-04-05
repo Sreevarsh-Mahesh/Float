@@ -109,7 +109,7 @@ export default function LoginScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: 'transparent',
   },
   content: {
     flex: 1,
@@ -136,7 +136,7 @@ const styles = StyleSheet.create({
   },
   brandName: {
     fontSize: typography.xxxl,
-    fontWeight: '800',
+    fontWeight: '900',
     color: colors.text,
     letterSpacing: -1,
   },
@@ -157,7 +157,7 @@ const styles = StyleSheet.create({
   errorText: {
     color: colors.danger,
     fontSize: typography.sm,
-    fontWeight: '500',
+    fontWeight: '900',
     textAlign: 'center',
   },
   loginBtn: {
@@ -174,7 +174,7 @@ const styles = StyleSheet.create({
   },
   footerLink: {
     color: colors.primary,
-    fontWeight: '600',
+    fontWeight: '900',
     fontSize: typography.base,
   },
 });

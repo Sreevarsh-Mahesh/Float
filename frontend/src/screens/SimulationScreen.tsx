@@ -11,8 +11,9 @@ import {
   Beaker, Calculator, CloudRain, Wind, ThermometerSun,
   AlertOctagon, Clock, MapPin, CheckCircle2, XCircle,
   ChevronRight, Activity, TrendingDown, Shield, Zap,
-  AlertTriangle, BarChart2, Navigation, Wifi
+  AlertTriangle, BarChart2, Navigation, Wifi, Sun
 } from 'lucide-react-native';
+import { useWeather } from '../context/WeatherContext';
 
 // ─────────────────────────────────────────────
 // CONSTANTS
@@ -73,9 +74,9 @@ const MetricRow = ({ label, value, sub, valueColor }: any) => (
 
 const mc = StyleSheet.create({
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 8, borderBottomWidth: 0.5, borderBottomColor: colors.borderLight },
-  label: { fontSize: typography.xs, color: colors.textSecondary, fontWeight: '600', flex: 1 },
-  value: { fontSize: typography.sm, color: colors.text, fontWeight: '800' },
-  sub: { fontSize: 10, color: colors.textMuted, fontWeight: '500', marginTop: 1 },
+  label: { fontSize: typography.xs, color: colors.textSecondary, fontWeight: '900', flex: 1 },
+  value: { fontSize: typography.sm, color: colors.text, fontWeight: '900' },
+  sub: { fontSize: 10, color: colors.textMuted, fontWeight: '900', marginTop: 1 },
 });
 
 const SectionHeading = ({ num, title }: { num: string; title: string }) => (
@@ -88,7 +89,7 @@ const sh = StyleSheet.create({
   wrap: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: spacing.sm, marginTop: spacing.lg },
   badge: { backgroundColor: colors.text, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 99 },
   num: { fontSize: 11, fontWeight: '900', color: colors.background, letterSpacing: 0.5 },
-  title: { fontSize: typography.sm, fontWeight: '800', color: colors.text, letterSpacing: 0.3 },
+  title: { fontSize: typography.sm, fontWeight: '900', color: colors.text, letterSpacing: 0.3 },
 });
 
 const FormulaBox = ({ formula }: { formula: string }) => (
@@ -109,15 +110,15 @@ const TierPayoutRow = ({ label, basic, prot, adv }: any) => (
 );
 const tp = StyleSheet.create({
   row: { flexDirection: 'row', paddingVertical: 7, borderBottomWidth: 0.5, borderBottomColor: colors.borderLight, alignItems: 'center' },
-  label: { flex: 1.5, fontSize: 11, color: colors.textSecondary, fontWeight: '600' },
-  val: { flex: 1, fontSize: 11, fontWeight: '800', textAlign: 'right' },
+  label: { flex: 1.5, fontSize: 11, color: colors.textSecondary, fontWeight: '900' },
+  val: { flex: 1, fontSize: 11, fontWeight: '900', textAlign: 'right' },
 });
 
 const ProbBar = ({ label, prob, color }: { label: string; prob: number; color: string }) => (
   <View style={{ marginBottom: 10 }}>
     <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 }}>
-      <Text style={{ fontSize: 11, color: colors.textSecondary, fontWeight: '600' }}>{label}</Text>
-      <Text style={{ fontSize: 11, color, fontWeight: '800' }}>{pct(prob)}</Text>
+      <Text style={{ fontSize: 11, color: colors.textSecondary, fontWeight: '900' }}>{label}</Text>
+      <Text style={{ fontSize: 11, color, fontWeight: '900' }}>{pct(prob)}</Text>
     </View>
     <View style={{ height: 6, backgroundColor: colors.borderLight, borderRadius: 3, overflow: 'hidden' }}>
       <View style={{ height: 6, width: `${clamp(prob * 100, 0, 100)}%`, backgroundColor: color, borderRadius: 3 }} />
@@ -130,7 +131,7 @@ const ProbBar = ({ label, prob, color }: { label: string; prob: number; color: s
 // ─────────────────────────────────────────────
 
 export default function SimulationScreen() {
-
+  const { weather, setWeather } = useWeather();
   // ── Section 1: Baseline Inputs ──
   const [dailyEarningsStr, setDailyEarnings] = useState('800');
   const [activeHoursStr, setActiveHours] = useState('10');
@@ -419,12 +420,57 @@ export default function SimulationScreen() {
     <View style={s.container}>
       <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
 
+        {/* Weather Lab Visual Toggles */}
+        <View style={{ marginBottom: spacing.xl, marginTop: spacing.sm }}>
+          <Text style={{ fontSize: 36, fontWeight: '900', color: '#1e293b', letterSpacing: -1 }}>Weather Lab</Text>
+          <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#475569', marginTop: 4, marginBottom: 20 }}>Play god! 🧪</Text>
+          
+          <View style={{ gap: 12 }}>
+            {[
+              { id: 'sunny', label: 'Sunny Day', icon: Sun, color: '#eab308', bg: '#fef08a' },
+              { id: 'rainy', label: 'Rainy Day', icon: CloudRain, color: '#3b82f6', bg: '#dbeafe' },
+              { id: 'thunderstorm', label: 'Thunderstorm', icon: Zap, color: '#9333ea', bg: '#f3e8ff' }
+            ].map(w => {
+              const isActive = weather === w.id;
+              const Icon = w.icon;
+              return (
+                <TouchableOpacity
+                  key={w.id}
+                  onPress={() => setWeather(w.id as any)}
+                  style={{
+                    backgroundColor: isActive ? '#FFF' : 'rgba(255,255,255,0.7)',
+                    borderWidth: 2,
+                    borderColor: isActive ? '#3b82f6' : 'rgba(255,255,255,0)',
+                    padding: 20,
+                    borderRadius: 32,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    shadowColor: isActive ? '#3b82f6' : '#000',
+                    shadowOpacity: isActive ? 0.3 : 0.05,
+                    shadowRadius: isActive ? 15 : 10,
+                    shadowOffset: { width: 0, height: 4 },
+                  }}
+                >
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
+                    <View style={{ width: 56, height: 56, borderRadius: 16, backgroundColor: w.bg, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#FFF' }}>
+                      <Icon size={28} color={w.color} strokeWidth={2.5} />
+                    </View>
+                    <Text style={{ fontSize: 20, fontWeight: '900', color: '#1e293b' }}>{w.label}</Text>
+                  </View>
+                  {isActive && <View style={{ width: 16, height: 16, borderRadius: 8, backgroundColor: '#3b82f6' }} />}
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+
         {/* Header */}
         <View style={s.header}>
           <View style={s.iconWrap}><Beaker size={24} color={colors.primary} /></View>
           <View>
-            <Text style={s.title}>Algorithm Sandbox</Text>
-            <Text style={s.subtitle}>Full actuarial + ML payout engine</Text>
+            <Text style={s.title}>Actuarial Sandbox</Text>
+            <Text style={s.subtitle}>Deep algorithm manual overrides</Text>
           </View>
         </View>
 
@@ -634,7 +680,7 @@ export default function SimulationScreen() {
               const Icon = e.icon;
               const active = eventType.id === e.id;
               return (
-                <TouchableOpacity key={e.id} style={[s.eventTab, active && { borderColor: e.color, backgroundColor: e.color + '15' }]} onPress={() => setEventType(e)}>
+                <TouchableOpacity key={e.id} style={[s.eventTab, active && { borderColor: e.color, backgroundColor: e.color + '15' }]} onPress={() => { setEventType(e); setWeather(e.id as any); }}>
                   <Icon size={16} color={active ? e.color : colors.textMuted} />
                   <Text style={[s.eventTabTxt, active && { color: e.color }]}>{e.label}</Text>
                   <View style={[s.fraudPill, { backgroundColor: (e.fraudRisk === 'LOW' ? colors.success : e.fraudRisk === 'MEDIUM' ? '#F59E0B' : colors.danger) + '20' }]}>
@@ -834,7 +880,7 @@ export default function SimulationScreen() {
               ].map(x => (
                 <View key={x.l} style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
                   <View style={{ width: 8, height: 8, borderRadius: 2, backgroundColor: x.c }} />
-                  <Text style={{ fontSize: 10, color: colors.textSecondary, fontWeight: '600' }}>{x.l}</Text>
+                  <Text style={{ fontSize: 10, color: colors.textSecondary, fontWeight: '900' }}>{x.l}</Text>
                 </View>
               ))}
             </View>
@@ -851,16 +897,19 @@ export default function SimulationScreen() {
 // STYLES
 // ─────────────────────────────────────────────
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
+  container: {
+    flex: 1,
+    backgroundColor: 'transparent',
+  },
   scroll: { paddingHorizontal: spacing.lg, paddingTop: Platform.OS === 'ios' ? 70 : 50, paddingBottom: 60 },
 
   header: { flexDirection: 'row', alignItems: 'center', gap: spacing.base, marginBottom: spacing.xl },
-  iconWrap: { backgroundColor: colors.primaryLight, padding: 12, borderRadius: 16 },
+  iconWrap: { backgroundColor: colors.primaryLight, padding: 12, borderRadius: 32 },
   title: { fontSize: typography.xxl, fontWeight: '900', color: colors.text, letterSpacing: -0.5 },
-  subtitle: { fontSize: typography.sm, color: colors.textSecondary, fontWeight: '500', marginTop: 2 },
+  subtitle: { fontSize: typography.sm, color: colors.textSecondary, fontWeight: '900', marginTop: 2 },
 
   card: { padding: spacing.lg, marginBottom: spacing.sm, borderRadius: 20 },
-  inputLabel: { fontSize: 10, fontWeight: '800', color: colors.textMuted, letterSpacing: 1, marginBottom: 8, marginTop: spacing.sm },
+  inputLabel: { fontSize: 10, fontWeight: '900', color: colors.textMuted, letterSpacing: 1, marginBottom: 8, marginTop: spacing.sm },
   inputRow: { flexDirection: 'row', marginBottom: spacing.sm },
   metricsBox: { backgroundColor: colors.background, borderRadius: 14, padding: spacing.md, marginTop: spacing.sm },
 
@@ -868,71 +917,71 @@ const s = StyleSheet.create({
   tierRow: { flexDirection: 'row', gap: 8, marginTop: 4 },
   tierBtn: { flex: 1, paddingVertical: 12, borderWidth: 1.5, borderColor: colors.borderLight, borderRadius: 14, alignItems: 'center' },
   tierBtnActive: { borderColor: colors.primary, backgroundColor: colors.primaryLight },
-  tierTxt: { fontSize: 11, fontWeight: '700', color: colors.textSecondary },
+  tierTxt: { fontSize: 11, fontWeight: '900', color: colors.textSecondary },
   tierTxtActive: { color: colors.primary },
-  tierSub: { fontSize: 10, color: colors.textMuted, marginTop: 2, fontWeight: '600' },
+  tierSub: { fontSize: 10, color: colors.textMuted, marginTop: 2, fontWeight: '900' },
 
   // City
   pill: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 9, borderWidth: 1.5, borderColor: colors.borderLight, borderRadius: 99, gap: 5 },
   pillActive: { borderColor: colors.text, backgroundColor: colors.text },
-  pillTxt: { fontSize: 12, fontWeight: '700', color: colors.textSecondary },
+  pillTxt: { fontSize: 12, fontWeight: '900', color: colors.textSecondary },
   pillTxtActive: { color: colors.background },
-  cityStats: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, backgroundColor: colors.background, padding: spacing.sm, borderRadius: 12, marginBottom: spacing.sm },
+  cityStats: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, backgroundColor: colors.background, padding: spacing.sm, borderRadius: 24, marginBottom: spacing.sm },
   cityStatItem: { alignItems: 'center', minWidth: '44%', flex: 1 },
-  csl: { fontSize: 10, color: colors.textMuted, fontWeight: '700', letterSpacing: 0.5 },
-  csv: { fontSize: 13, color: colors.text, fontWeight: '800', marginTop: 2 },
+  csl: { fontSize: 10, color: colors.textMuted, fontWeight: '900', letterSpacing: 0.5 },
+  csv: { fontSize: 13, color: colors.text, fontWeight: '900', marginTop: 2 },
 
   // Event tabs
   eventGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: spacing.md },
   eventTab: { width: '48%', flexDirection: 'row', alignItems: 'center', padding: 12, borderWidth: 1.5, borderColor: colors.borderLight, borderRadius: 14, gap: 8, flexWrap: 'wrap' },
-  eventTabTxt: { fontSize: 11, fontWeight: '700', color: colors.textSecondary, flex: 1 },
+  eventTabTxt: { fontSize: 11, fontWeight: '900', color: colors.textSecondary, flex: 1 },
   fraudPill: { paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 },
-  fraudPillTxt: { fontSize: 9, fontWeight: '800', letterSpacing: 0.3 },
+  fraudPillTxt: { fontSize: 9, fontWeight: '900', letterSpacing: 0.3 },
 
   // Switch row
   switchRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: colors.surfaceElevated, borderWidth: 1, borderColor: colors.borderLight, padding: 14, borderRadius: 14, marginBottom: spacing.sm },
-  swLabel: { fontSize: 13, fontWeight: '800', color: colors.text },
-  swSub: { fontSize: 11, color: colors.textMuted, marginTop: 3, fontWeight: '500', maxWidth: 220 },
+  swLabel: { fontSize: 13, fontWeight: '900', color: colors.text },
+  swSub: { fontSize: 11, color: colors.textMuted, marginTop: 3, fontWeight: '900', maxWidth: 220 },
 
   // Requirement pill
   reqPill: { flexDirection: 'row', alignItems: 'flex-start', backgroundColor: colors.background, padding: 10, borderRadius: 10, marginTop: -4, gap: 4 },
-  reqTxt: { fontSize: 11, color: colors.textSecondary, fontWeight: '600', flex: 1, lineHeight: 16 },
+  reqTxt: { fontSize: 11, color: colors.textSecondary, fontWeight: '900', flex: 1, lineHeight: 16 },
 
   // Warn box
   warnBox: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F59E0B20', padding: 10, borderRadius: 10, marginBottom: spacing.sm, gap: 6 },
-  warnTxt: { fontSize: 11, color: '#F59E0B', fontWeight: '700' },
+  warnTxt: { fontSize: 11, color: '#F59E0B', fontWeight: '900' },
 
   // Excluded
-  excludedBox: { backgroundColor: colors.danger + '10', padding: 20, borderRadius: 16, alignItems: 'center', gap: 10, borderWidth: 1, borderColor: colors.danger + '30' },
+  excludedBox: { backgroundColor: colors.danger + '10', padding: 20, borderRadius: 32, alignItems: 'center', gap: 10, borderWidth: 1, borderColor: colors.danger + '30' },
   excludedTitle: { color: colors.danger, fontWeight: '900', fontSize: 13, letterSpacing: 0.5 },
-  excludedBody: { color: colors.textSecondary, fontWeight: '500', textAlign: 'center', fontSize: 12, lineHeight: 18 },
+  excludedBody: { color: colors.textSecondary, fontWeight: '900', textAlign: 'center', fontSize: 12, lineHeight: 18 },
 
   // Result card
   resultCard: { padding: spacing.xl, borderRadius: 24, marginBottom: spacing.xl, borderWidth: 2 },
   resultOk: { backgroundColor: colors.success + '08', borderColor: colors.success + '30' },
   resultFail: { backgroundColor: colors.danger + '08', borderColor: colors.danger + '30' },
   resultHd: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: spacing.md, justifyContent: 'center', flexWrap: 'wrap' },
-  resultTitle: { fontSize: 13, fontWeight: '800', letterSpacing: 0.8 },
+  resultTitle: { fontSize: 13, fontWeight: '900', letterSpacing: 0.8 },
   fraudBadge: { paddingHorizontal: 10, paddingVertical: 3, borderRadius: 99 },
-  fraudText: { fontSize: 10, fontWeight: '800', letterSpacing: 0.5 },
+  fraudText: { fontSize: 10, fontWeight: '900', letterSpacing: 0.5 },
   payoutBig: { fontSize: 64, fontWeight: '900', color: colors.text, textAlign: 'center', letterSpacing: -2 },
-  payoutSub: { fontSize: 12, color: colors.textMuted, textAlign: 'center', fontWeight: '500', marginTop: 4, marginBottom: spacing.lg },
+  payoutSub: { fontSize: 12, color: colors.textMuted, textAlign: 'center', fontWeight: '900', marginTop: 4, marginBottom: spacing.lg },
 
   // Tier compare
   tierCompare: { flexDirection: 'row', gap: 8, marginBottom: spacing.lg },
-  tcCard: { flex: 1, backgroundColor: colors.background, borderRadius: 12, padding: 10, alignItems: 'center', borderWidth: 1, borderColor: colors.borderLight },
+  tcCard: { flex: 1, backgroundColor: colors.background, borderRadius: 24, padding: 10, alignItems: 'center', borderWidth: 1, borderColor: colors.borderLight },
   tcVal: { fontSize: 15, fontWeight: '900' },
-  tcLabel: { fontSize: 10, color: colors.textMuted, fontWeight: '600', marginTop: 2 },
+  tcLabel: { fontSize: 10, color: colors.textMuted, fontWeight: '900', marginTop: 2 },
 
   // Notes
   noteRow: { flexDirection: 'row', gap: 8, alignItems: 'flex-start', marginTop: 6 },
-  noteText: { fontSize: 11, fontWeight: '600', flex: 1, lineHeight: 16 },
+  noteText: { fontSize: 11, fontWeight: '900', flex: 1, lineHeight: 16 },
 
   // Premium hero
   premiumHero: { backgroundColor: colors.primaryLight, borderRadius: 18, padding: spacing.xl, alignItems: 'center', marginTop: spacing.md },
-  premiumLabel: { fontSize: 11, fontWeight: '800', color: colors.primary, letterSpacing: 1, marginBottom: 6 },
+  premiumLabel: { fontSize: 11, fontWeight: '900', color: colors.primary, letterSpacing: 1, marginBottom: 6 },
   premiumValue: { fontSize: 52, fontWeight: '900', color: colors.primary, letterSpacing: -2 },
-  premiumSub: { fontSize: 11, color: colors.textSecondary, fontWeight: '500', marginTop: 6, textAlign: 'center' },
+  premiumSub: { fontSize: 11, color: colors.textSecondary, fontWeight: '900', marginTop: 6, textAlign: 'center' },
 
   // Cashflow bar
   stackedBar: { height: 12, borderRadius: 6, flexDirection: 'row', overflow: 'hidden', marginBottom: 8 },

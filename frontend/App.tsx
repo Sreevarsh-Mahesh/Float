@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, DefaultTheme, useIsFocused } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { ActivityIndicator, View, Platform } from 'react-native';
@@ -13,10 +13,21 @@ import CoverageScreen from './src/screens/CoverageScreen';
 import ClaimsScreen from './src/screens/ClaimsScreen';
 import SimulationScreen from './src/screens/SimulationScreen';
 
+// Weather Context & UI
+import { WeatherProvider } from './src/context/WeatherContext';
+import { WeatherBackground } from './src/components/WeatherBackground';
+
 // Theme
 import { colors } from './src/theme/colors';
 import { LayoutDashboard, Shield, FileText, Beaker } from 'lucide-react-native';
 
+function withFocus(WrappedComponent: React.ComponentType<any>) {
+  return function FocusedComponent(props: any) {
+    const isFocused = useIsFocused();
+    if (!isFocused) return null;
+    return <WrappedComponent {...props} />;
+  };
+}
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
@@ -24,53 +35,69 @@ function MainTabs() {
   return (
     <Tab.Navigator
       screenOptions={{
+        lazy: true,
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: colors.surface,
-          borderTopWidth: 1,
-          borderTopColor: colors.borderLight,
-          height: Platform.OS === 'ios' ? 88 : 64,
-          paddingBottom: Platform.OS === 'ios' ? 28 : 8,
-          paddingTop: 8,
-          elevation: 0,
+          position: 'absolute',
+          bottom: Platform.OS === 'ios' ? 24 : 16,
+          left: 20,
+          right: 20,
+          backgroundColor: 'rgba(255, 255, 255, 0.9)',
+          borderWidth: 2,
+          borderColor: 'rgba(255, 255, 255, 0.6)',
+          borderRadius: 32,
+          height: 64,
+          paddingBottom: 0,
+          paddingTop: 0,
+          elevation: 10,
           shadowColor: '#000',
-          shadowOffset: { width: 0, height: -2 },
-          shadowOpacity: 0.04,
-          shadowRadius: 8,
+          shadowOffset: { width: 0, height: 8 },
+          shadowOpacity: 0.1,
+          shadowRadius: 15,
         },
-        tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: colors.textLight,
+        tabBarActiveTintColor: colors.primaryDark,
+        tabBarInactiveTintColor: colors.textMuted,
+        tabBarItemStyle: {
+          justifyContent: 'center',
+          alignItems: 'center',
+          padding: 8,
+        },
         tabBarLabelStyle: {
-          fontSize: 11,
-          fontWeight: '600',
-          letterSpacing: 0.2,
+          fontSize: 10,
+          fontWeight: '900',
+          letterSpacing: 0.5,
+          textTransform: 'uppercase',
+          marginTop: 2,
         },
+        tabBarBackground: () => (
+          <View style={{ flex: 1, backgroundColor: 'transparent', borderRadius: 32 }} />
+        )
       }}
     >
       <Tab.Screen
         name="Home"
-        component={DashboardScreen}
+        component={withFocus(DashboardScreen)}
         options={{
           tabBarIcon: ({ color, size }) => <LayoutDashboard color={color} size={size - 2} />,
         }}
       />
       <Tab.Screen
         name="Coverage"
-        component={CoverageScreen}
+        component={withFocus(CoverageScreen)}
         options={{
           tabBarIcon: ({ color, size }) => <Shield color={color} size={size - 2} />,
         }}
       />
       <Tab.Screen
         name="Claims"
-        component={ClaimsScreen}
+        component={withFocus(ClaimsScreen)}
         options={{
           tabBarIcon: ({ color, size }) => <FileText color={color} size={size - 2} />,
         }}
       />
       <Tab.Screen
         name="Simulate"
-        component={SimulationScreen}
+        component={withFocus(SimulationScreen)}
         options={{
           tabBarIcon: ({ color, size }) => <Beaker color={color} size={size - 2} />,
         }}
@@ -109,9 +136,21 @@ export default function App() {
     );
   }
 
+  const navTheme = {
+    ...DefaultTheme,
+    colors: {
+      ...DefaultTheme.colors,
+      background: 'transparent',
+      card: 'rgba(255,255,255,0.9)',
+    },
+  };
+
   return (
-    <NavigationContainer>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <WeatherProvider>
+      <View style={{ flex: 1, backgroundColor: '#dbeafe' }}>
+        <WeatherBackground />
+        <NavigationContainer theme={navTheme}>
+          <Stack.Navigator screenOptions={{ headerShown: false, }}>
         {userToken == null ? (
           <>
             <Stack.Screen name="Login" component={LoginScreen} />
@@ -127,5 +166,7 @@ export default function App() {
         )}
       </Stack.Navigator>
     </NavigationContainer>
+      </View>
+    </WeatherProvider>
   );
 }

@@ -277,7 +277,7 @@ export default function RegisterScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: 'transparent',
   },
   scrollContent: {
     flexGrow: 1,
@@ -309,7 +309,7 @@ const styles = StyleSheet.create({
   stepCircle: {
     width: 32,
     height: 32,
-    borderRadius: 16,
+    borderRadius: 32,
     backgroundColor: colors.surfaceElevated,
     alignItems: 'center',
     justifyContent: 'center',
@@ -326,7 +326,7 @@ const styles = StyleSheet.create({
   },
   stepNum: {
     fontSize: typography.sm,
-    fontWeight: '700',
+    fontWeight: '900',
     color: colors.textMuted,
   },
   stepNumActive: {
@@ -346,7 +346,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: typography.xxl,
-    fontWeight: '800',
+    fontWeight: '900',
     color: colors.text,
     marginBottom: spacing.xs,
   },
@@ -359,7 +359,7 @@ const styles = StyleSheet.create({
   },
   fieldLabel: {
     fontSize: typography.sm,
-    fontWeight: '600',
+    fontWeight: '900',
     color: colors.textSecondary,
     marginBottom: spacing.md,
     letterSpacing: 0.2,
@@ -388,7 +388,7 @@ const styles = StyleSheet.create({
   },
   platformLabel: {
     fontSize: typography.sm,
-    fontWeight: '600',
+    fontWeight: '900',
     color: colors.textSecondary,
   },
   platformLabelActive: {
@@ -403,7 +403,7 @@ const styles = StyleSheet.create({
   errorText: {
     color: colors.danger,
     fontSize: typography.sm,
-    fontWeight: '500',
+    fontWeight: '900',
     textAlign: 'center',
   },
   actionSection: {
@@ -421,7 +421,7 @@ const styles = StyleSheet.create({
   },
   footerLink: {
     color: colors.primary,
-    fontWeight: '600',
+    fontWeight: '900',
     fontSize: typography.base,
   },
 });
