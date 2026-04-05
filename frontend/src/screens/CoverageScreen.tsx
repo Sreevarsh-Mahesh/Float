@@ -9,9 +9,10 @@ import { typography, spacing, radius } from '../theme/constants';
 import { ClayCard } from '../components/ClayCard';
 import { ClayButton } from '../components/ClayButton';
 import { StatusBadge } from '../components/StatusBadge';
+import { FloatInput } from '../components/FloatInput';
 import {
   Shield, ShieldAlert, ShieldCheck, Check, X, Star,
-  IndianRupee, Percent, ArrowRight,
+  IndianRupee, Percent, ArrowRight, Info, Calculator,
 } from 'lucide-react-native';
 
 const TIER_CONFIG: Record<string, {
@@ -58,7 +59,9 @@ export default function CoverageScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [subscribingTo, setSubscribingTo] = useState<string | null>(null);
   const [showConfirm, setShowConfirm] = useState<string | null>(null);
-  const [showSuccess, setShowSuccess] = useState(false);
+  const [showSuccess, setShowSuccess] = useState<string | null>(null);
+  const [showPremiumInfo, setShowPremiumInfo] = useState(false);
+  const [estimatorEarnings, setEstimatorEarnings] = useState('');
 
   const fetchData = async () => {
     try {
@@ -87,8 +90,7 @@ export default function CoverageScreen() {
     try {
       await apiClient.post('/policies/subscribe', { tier: tierName });
       await fetchData();
-      setShowSuccess(true);
-      setTimeout(() => setShowSuccess(false), 2500);
+      setShowSuccess(tierName);
     } catch (e: any) {
       Alert.alert('Error', 'Could not subscribe. Please try again.');
     } finally {
@@ -137,21 +139,31 @@ export default function CoverageScreen() {
           </ClayCard>
         )}
 
-        {/* Tier Cards */}
-        {tiers.map((tier) => {
-          const config = TIER_CONFIG[tier.tier] || TIER_CONFIG.basic;
-          const isActive = activePolicy?.tier === tier.tier;
-          const coveragePct = Math.round(tier.coverage_pct * 100);
+        {/* Tier Cards Horizontal Swipe */}
+        <View>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            snapToInterval={SCREEN_WIDTH * 0.85 + spacing.md}
+            decelerationRate="fast"
+            style={styles.horizontalScroll}
+            contentContainerStyle={styles.horizontalScrollContent}
+          >
+            {tiers.map((tier) => {
+            const config = TIER_CONFIG[tier.tier] || TIER_CONFIG.basic;
+            const isActive = activePolicy?.tier === tier.tier;
+            const coveragePct = Math.round(tier.coverage_pct * 100);
 
-          return (
-            <ClayCard
-              key={tier.tier}
-              variant={isActive ? 'elevated' : 'default'}
-              style={[
-                styles.tierCard,
-                isActive && { borderWidth: 2, borderColor: config.color },
-              ]}
-            >
+            return (
+              <ClayCard
+                key={tier.tier}
+                variant={isActive ? 'elevated' : 'default'}
+                style={[
+                  styles.tierCard,
+                  { width: SCREEN_WIDTH * 0.85 },
+                  isActive ? { borderWidth: 2, borderColor: config.color } : {},
+                ] as any}
+              >
               {/* Tier Header */}
               <View style={styles.tierHeader}>
                 <View style={[styles.tierIconBox, { backgroundColor: config.colorLight }]}>
@@ -187,8 +199,13 @@ export default function CoverageScreen() {
                     <IndianRupee size={14} color={colors.textSecondary} />
                   </View>
                   <View>
-                    <Text style={styles.metricValue}>₹{tier.weekly_premium}</Text>
-                    <Text style={styles.metricLabel}>Per Week</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                      <Text style={[styles.metricValue, { fontSize: typography.base }]}>Calculated</Text>
+                      <TouchableOpacity onPress={() => setShowPremiumInfo(true)}>
+                        <Info size={14} color={colors.textLight} />
+                      </TouchableOpacity>
+                    </View>
+                    <Text style={styles.metricLabel}>Every Week</Text>
                   </View>
                 </View>
               </View>
@@ -212,16 +229,68 @@ export default function CoverageScreen() {
                   variant={tier.tier === 'advanced' ? 'primary' : 'secondary'}
                   style={styles.selectBtn}
                 />
-              )}
-            </ClayCard>
-          );
-        })}
+                )}
+              </ClayCard>
+            );
+          })}
+          </ScrollView>
+        </View>
+
+        {/* Cost Estimator */}
+        <View style={styles.estimatorContainer}>
+          <Text style={styles.estimatorTitle}>Cost Estimator</Text>
+          <Text style={styles.estimatorSubtitle}>Estimate your weekly premium and coverage based on your earnings.</Text>
+          <ClayCard variant="elevated" style={styles.estimatorCard}>
+            <View style={styles.estimatorInputBox}>
+              <FloatInput
+                label="Average Weekly Earnings (₹)"
+                placeholder="e.g. 5000"
+                value={estimatorEarnings}
+                onChangeText={(t) => setEstimatorEarnings(t.replace(/\D/g, ''))}
+                keyboardType="number-pad"
+                icon={<IndianRupee size={18} color={colors.textMuted} />}
+              />
+            </View>
+
+            {estimatorEarnings && Number(estimatorEarnings) > 0 ? (
+              <View style={styles.estimatorBreakdown}>
+                {tiers.map((tier) => {
+                  const val = Number(estimatorEarnings);
+                  const config = TIER_CONFIG[tier.tier] || TIER_CONFIG.basic;
+                  const estimatedPremium = Math.round(val * 0.02); // Dummy 2%
+                  const estimatedCoverage = Math.round(val * tier.coverage_pct);
+
+                  return (
+                    <View key={tier.tier} style={styles.estimatorRow}>
+                      <View style={styles.estimatorTierLeft}>
+                        {getTierIcon(tier.tier, 18)}
+                        <Text style={styles.estimatorRowLabel}>
+                          {tier.label?.split('(')[0]?.trim() || tier.tier}
+                        </Text>
+                      </View>
+                      <View style={styles.estimatorTierRight}>
+                        <Text style={styles.estimatorCoverText}>Gets ₹{estimatedCoverage}</Text>
+                        <Text style={[styles.estimatorPremiumText, { color: config.color }]}>~₹{estimatedPremium} cost</Text>
+                      </View>
+                    </View>
+                  );
+                })}
+              </View>
+            ) : (
+              <View style={styles.estimatorPlaceholder}>
+                <Calculator size={24} color={colors.borderLight} />
+                <Text style={styles.estimatorPlaceholderText}>Enter earnings to see cost</Text>
+              </View>
+            )}
+          </ClayCard>
+        </View>
+
       </ScrollView>
 
       {/* Confirmation Modal */}
       <Modal visible={!!showConfirm} transparent animationType="fade">
         <View style={styles.modalOverlay}>
-          <ClayCard variant="elevated" style={styles.modalCard}>
+          <ClayCard variant="elevated" style={styles.modalCard as any}>
             <Text style={styles.modalTitle}>Confirm Plan</Text>
             <Text style={styles.modalText}>
               {showConfirm
@@ -230,9 +299,16 @@ export default function CoverageScreen() {
               }
             </Text>
             {showConfirm && tiers.find(t => t.tier === showConfirm) && (
-              <Text style={styles.modalPrice}>
-                ₹{tiers.find(t => t.tier === showConfirm)!.weekly_premium} / week
-              </Text>
+              <View style={{ alignItems: 'center', marginBottom: spacing.xl }}>
+                <Text style={[styles.modalPrice, { fontSize: typography.xl, marginBottom: spacing.xs }]}>
+                  Calculated every week
+                </Text>
+                <TouchableOpacity onPress={() => { setShowConfirm(null); setShowPremiumInfo(true); }}>
+                  <Text style={{ color: colors.primary, fontSize: typography.sm, fontWeight: '600' }}>
+                    How is it calculated?
+                  </Text>
+                </TouchableOpacity>
+              </View>
             )}
             <View style={styles.modalActions}>
               <ClayButton
@@ -253,13 +329,51 @@ export default function CoverageScreen() {
         </View>
       </Modal>
 
-      {/* Success Toast */}
-      {showSuccess && (
-        <View style={styles.successToast}>
-          <Check size={18} color={colors.textOnPrimary} />
-          <Text style={styles.successText}>Plan activated successfully!</Text>
+      {/* Premium Explanation Modal */}
+      <Modal visible={showPremiumInfo} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <ClayCard variant="elevated" style={styles.modalCard as any}>
+            <View style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: colors.primaryLight, alignItems: 'center', justifyContent: 'center', marginBottom: spacing.md }}>
+              <Info size={24} color={colors.primary} />
+            </View>
+            <Text style={styles.modalTitle}>Weekly Premium</Text>
+            <Text style={[styles.modalText, { lineHeight: 20 }]}>
+              To keep it fair and simple, your premium changes every week depending on how much you work, the weather, and your location. You only pay for what you actually need!
+            </Text>
+            <View style={styles.modalActions}>
+              <ClayButton
+                title="Got it"
+                size="md"
+                onPress={() => setShowPremiumInfo(false)}
+                style={{ flex: 1 }}
+              />
+            </View>
+          </ClayCard>
         </View>
-      )}
+      </Modal>
+
+      {/* Success Modal */}
+      <Modal visible={!!showSuccess} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <ClayCard variant="elevated" style={[styles.modalCard, { paddingVertical: spacing.xxl }] as any}>
+            <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: colors.successBg, alignItems: 'center', justifyContent: 'center', marginBottom: spacing.lg }}>
+              <Check size={32} color={colors.success} />
+            </View>
+            <Text style={[styles.modalTitle, { fontSize: typography.xxl, color: colors.success, marginBottom: spacing.md }]}>Success!</Text>
+            <Text style={styles.modalText}>
+              You have successfully subscribed to the <Text style={{ fontWeight: '700', color: colors.text }}>{typeof showSuccess === 'string' ? showSuccess.charAt(0).toUpperCase() + showSuccess.slice(1) : ''}</Text> Plan!
+            </Text>
+            <View style={[styles.modalActions, { marginTop: spacing.xl }]}>
+              <ClayButton
+                title="Got it"
+                size="md"
+                onPress={() => setShowSuccess(null)}
+                style={{ flex: 1 }}
+              />
+            </View>
+          </ClayCard>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -316,10 +430,18 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
 
+  // Horizontal Scroll
+  horizontalScroll: {
+    marginHorizontal: -spacing.lg,
+  },
+  horizontalScrollContent: {
+    paddingHorizontal: spacing.lg,
+  },
+
   // Tier Card
   tierCard: {
     padding: spacing.xl,
-    marginBottom: spacing.base,
+    marginRight: spacing.md,
   },
   tierHeader: {
     flexDirection: 'row',
@@ -435,28 +557,78 @@ const styles = StyleSheet.create({
     width: '100%',
   },
 
-  // Success Toast
-  successToast: {
-    position: 'absolute',
-    bottom: 100,
-    left: spacing.xl,
-    right: spacing.xl,
-    backgroundColor: colors.success,
-    borderRadius: radius.lg,
+  // Estimator
+  estimatorContainer: {
+    marginTop: spacing.xl,
+    marginBottom: spacing.xxl,
+  },
+  estimatorTitle: {
+    fontSize: typography.xl,
+    fontWeight: '800',
+    color: colors.text,
+    marginBottom: 4,
+  },
+  estimatorSubtitle: {
+    fontSize: typography.sm,
+    color: colors.textSecondary,
+    marginBottom: spacing.lg,
+  },
+  estimatorCard: {
+    padding: spacing.xl,
+  },
+  estimatorInputBox: {
+    marginBottom: spacing.lg,
+  },
+  estimatorBreakdown: {
+    gap: spacing.base,
+  },
+  estimatorRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    padding: spacing.base,
+    justifyContent: 'space-between',
+    paddingVertical: spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: colors.borderLight,
+  },
+  estimatorTierLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: spacing.sm,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 12,
-    elevation: 6,
+    width: '40%',
+  },
+  estimatorRowLabel: {
+    fontSize: typography.base,
+    fontWeight: '600',
+    color: colors.text,
+  },
+  estimatorTierRight: {
+    alignItems: 'flex-end',
+  },
+  estimatorCoverText: {
+    fontSize: typography.sm,
+    fontWeight: '700',
+    color: colors.text,
+  },
+  estimatorPremiumText: {
+    fontSize: typography.xs,
+    fontWeight: '700',
+    marginTop: 2,
+  },
+  estimatorPlaceholder: {
+    alignItems: 'center',
+    paddingVertical: spacing.xl,
+  },
+  estimatorPlaceholderText: {
+    fontSize: typography.sm,
+    color: colors.textMuted,
+    marginTop: spacing.sm,
+  },
+
+  // Success Toast (unused but kept for layout safety)
+  successToast: {
+    display: 'none',
   },
   successText: {
-    color: colors.textOnPrimary,
-    fontWeight: '600',
-    fontSize: typography.base,
+    display: 'none',
   },
 });

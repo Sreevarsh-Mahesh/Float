@@ -4,6 +4,7 @@ import {
   Platform, TouchableOpacity, Dimensions, ScrollView,
 } from 'react-native';
 import { apiClient } from '../api/client';
+import { storage } from '../api/storage';
 import { colors } from '../theme/colors';
 import { typography, spacing, radius } from '../theme/constants';
 import { ClayButton } from '../components/ClayButton';
@@ -80,7 +81,19 @@ export default function RegisterScreen({ navigation }: any) {
         platform_driver_id: driverId.trim() || undefined,
         h3_home_cell: h3HomeCell.trim() || undefined,
       });
-      navigation.navigate('Login');
+      
+      const params = new URLSearchParams();
+      params.append('username', email.trim().toLowerCase());
+      params.append('password', password);
+      
+      const { data } = await apiClient.post('/auth/login', params.toString(), {
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      });
+      
+      await storage.setItem('access_token', data.access_token);
+      await storage.setItem('refresh_token', data.refresh_token);
+      
+      navigation.replace('MainTabs', { screen: 'Coverage' });
     } catch (e: any) {
       const detail = e.response?.data?.detail;
       setError(typeof detail === 'string' ? detail : 'Registration failed. Try again.');
