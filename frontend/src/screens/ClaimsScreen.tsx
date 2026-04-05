@@ -12,7 +12,9 @@ import { ClayButton } from '../components/ClayButton';
 import {
   CloudRain, Wind, Thermometer, AlertTriangle, Clock,
   IndianRupee, ShieldCheck, X, FileText, ChevronRight,
+  Navigation, Wifi, AlertOctagon, CheckCircle2,
 } from 'lucide-react-native';
+import { SimulationStore } from '../store/SimulationStore';
 
 // Map event types to human-readable labels and icons
 const EVENT_TYPE_CONFIG: Record<string, { label: string; icon: any; color: string }> = {
@@ -29,6 +31,13 @@ export default function ClaimsScreen() {
   const [payouts, setPayouts] = useState<any[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedClaim, setSelectedClaim] = useState<any>(null);
+  
+  const [simData, setSimData] = useState<any>(SimulationStore.currentSimData);
+
+  useEffect(() => {
+    const unsubscribe = SimulationStore.subscribe((data: any) => setSimData(data));
+    return () => { unsubscribe(); };
+  }, []);
 
   const fetchData = async () => {
     try {
@@ -36,10 +45,30 @@ export default function ClaimsScreen() {
         apiClient.get('/claims/me'),
         apiClient.get('/claims/me/payouts'),
       ]);
-      setClaims(cRes.data || []);
+      
+      const realClaims = cRes.data || [];
+      const mockSimulationClaim = {
+        id: 'SIMULATOR',
+        status: 'active',
+        created_at: new Date().toISOString(),
+        payout_estimate: 420,
+        trigger_event_id: 'rain_001',
+        isSimulation: true
+      };
+
+      setClaims([mockSimulationClaim, ...realClaims]);
       setPayouts(pRes.data || []);
     } catch (e) {
       console.error('Failed to fetch claims/payouts', e);
+      // Ensure simulation claim is always visible even if backend offline
+      setClaims([{
+        id: 'SIMULATOR',
+        status: 'active',
+        created_at: new Date().toISOString(),
+        payout_estimate: 420,
+        trigger_event_id: 'rain_001',
+        isSimulation: true
+      }]);
     }
   };
 
@@ -67,8 +96,11 @@ export default function ClaimsScreen() {
     });
 
     // Determine the display amount
-    const amount = payout ? payout.final_amount : item.payout_estimate;
-    const isPaid = !!payout;
+    let amount = payout ? payout.final_amount : item.payout_estimate;
+    if (item.isSimulation) {
+      amount = simData?.calc?.payout || 0;
+    }
+    const isPaid = !!payout && !item.isSimulation;
 
     return (
       <TouchableOpacity
@@ -83,10 +115,14 @@ export default function ClaimsScreen() {
                 <FileText size={18} color={colors.primary} />
               </View>
               <View style={styles.claimInfo}>
-                <Text style={styles.claimTitle}>Claim #{item.id}</Text>
+                <Text style={styles.claimTitle}>
+                   {item.isSimulation ? '[Oracle] Trigger Detected' : `Claim #${item.id}`}
+                </Text>
                 <View style={styles.claimDateRow}>
-                  <Clock size={11} color={colors.textMuted} />
-                  <Text style={styles.claimDate}>{dateStr} · {timeStr}</Text>
+                  <Clock size={11} color={item.isSimulation ? colors.primary : colors.textMuted} />
+                  <Text style={[styles.claimDate, item.isSimulation && {color: colors.primary, fontWeight: '600'}]}>
+                     {item.isSimulation ? 'Happening Now' : `${dateStr} · ${timeStr}`}
+                  </Text>
                 </View>
               </View>
             </View>
@@ -156,7 +192,7 @@ export default function ClaimsScreen() {
       <Modal visible={!!selectedClaim} transparent animationType="slide">
         <View style={styles.modalOverlay}>
           <ClayCard variant="elevated" style={styles.modalCard}>
-            {selectedClaim && (
+            {selectedClaim && !selectedClaim.isSimulation && (
               <>
                 <View style={styles.modalHeader}>
                   <Text style={styles.modalTitle}>Claim #{selectedClaim.id}</Text>
@@ -228,6 +264,95 @@ export default function ClaimsScreen() {
                   style={{ marginTop: spacing.lg }}
                 />
               </>
+            )}
+            
+            {selectedClaim && selectedClaim.isSimulation && (
+              <View style={styles.workerSimContainer}>
+                 <View style={styles.workerSimBadge}>
+                    <Text style={styles.workerSimBadgeText}>LIVE DRIVER VIEW</Text>
+                 </View>
+                 
+                 {simData ? (
+                   <>
+                     <View style={[styles.workerSimHeader, {backgroundColor: simData.eventType?.color || colors.primary}]}>
+                        <View style={styles.workerSimIconBox}>
+                           {simData.eventType?.id === 'rain' ? <CloudRain size={36} color={colors.background} /> :
+                            simData.eventType?.id === 'aqi' ? <Wind size={36} color={colors.background} /> :
+                            simData.eventType?.id === 'heat' ? <Thermometer size={36} color={colors.background} /> :
+                            simData.eventType?.id === 'road' ? <Navigation size={36} color={colors.background} /> :
+                            simData.eventType?.id === 'platform' ? <Wifi size={36} color={colors.background} /> :
+                            <AlertOctagon size={36} color={colors.background} />}
+                        </View>
+                     </View>
+                     
+                     <Text style={styles.workerSimTitle}>{simData.eventType?.label || 'Disruption'}</Text>
+                     <Text style={styles.workerSimSub}>Live Triggers Active • {simData.city?.name || 'Your Zone'}</Text>
+                     
+                     <View style={styles.workerSimCard}>
+                        <View style={styles.workerSimRow}>
+                           <ShieldCheck size={20} color={colors.success} />
+                           <Text style={styles.workerSimCardTitle}>Float Protection Active</Text>
+                        </View>
+                        <Text style={styles.workerSimCardBody}>
+                           {simData.calc?.isValid 
+                             ? `Your ${simData.tier?.label} tier covers you during this disruption. Your projected daily earnings have been safely bumped up!`
+                             : `The current environmental conditions do not meet the minimum gateway threshold for a payout.`}
+                        </Text>
+                        
+                        {/* Top highlight row */}
+                     <View style={{flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20}}>
+                        <View style={styles.workerSimMetricBox}>
+                           <View style={styles.workerSimMetric}>
+                              <Text style={styles.workerSimMetricLabel}>Float Payout</Text>
+                              <Text style={[styles.workerSimMetricNew, !simData.calc?.isValid && {color: colors.textMuted}]}>
+                                ₹{Math.round(simData.calc?.isValid ? simData.calc?.payout : 0)}
+                              </Text>
+                           </View>
+                           <ChevronRight size={24} color={colors.border} />
+                           <View style={styles.workerSimMetric}>
+                              <Text style={styles.workerSimMetricLabel}>Target Earnings</Text>
+                              <Text style={{ fontSize: 20, fontWeight: '800', color: colors.textSecondary }}>
+                                ~₹{Math.round(simData.calc?.Ed || 0)}/day
+                              </Text>
+                           </View>
+                        </View>
+                        
+                        <View style={{alignItems: 'flex-end', justifyContent: 'center'}}>
+                           <Text style={{fontSize: 10, color: colors.textMuted, fontWeight: '600', marginBottom: 4}}>Just now</Text>
+                           <View style={{paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, backgroundColor: simData.calc?.isValid ? colors.success+'20' : colors.danger+'20'}}>
+                              <Text style={{fontSize: 10, fontWeight: '800', color: simData.calc?.isValid ? colors.success : colors.danger}}>
+                                {simData.calc?.isValid ? 'APPROVED' : 'DENIED'}
+                              </Text>
+                           </View>
+                        </View>
+                     </View>
+                        
+                        {/* Algorithm Audit Log */}
+                        <View style={{marginTop: 16, padding: 12, backgroundColor: colors.surfaceElevated, borderRadius: 12, borderWidth: 1, borderColor: colors.borderLight}}>
+                           <Text style={{fontSize: 10, fontWeight: '800', color: colors.textMuted, letterSpacing: 1, marginBottom: 8}}>ALGORITHMIC ORACLE LOG</Text>
+                           {(simData.calc?.driverNotes || []).map((n:any, i:number) => (
+                             <View key={i} style={{flexDirection: 'row', gap: 6, marginBottom: 6, alignItems: 'flex-start'}}>
+                                {n.pass 
+                                  ? <CheckCircle2 size={14} color={colors.success} style={{marginTop: 2}} /> 
+                                  : <X size={14} color={colors.danger} style={{marginTop: 2}} />}
+                                <Text style={{fontSize: 11, color: n.pass ? colors.textSecondary : colors.danger, flex: 1, lineHeight: 16, fontWeight: '500'}}>
+                                  {n.text}
+                                </Text>
+                             </View>
+                           ))}
+                        </View>
+                     </View>
+                   </>
+                 ) : (
+                   <Text style={{marginTop: 20, color: colors.textSecondary}}>No active simulation data. Open the Simulation tab to set parameters.</Text>
+                 )}
+                 
+                 <ClayButton
+                    title="Got it"
+                    onPress={() => setSelectedClaim(null)}
+                    style={{ marginTop: spacing.xl, width: '100%' }}
+                 />
+              </View>
             )}
           </ClayCard>
         </View>
@@ -449,4 +574,22 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     textAlign: 'center',
   },
+  
+  // Worker Sim View
+  workerSimContainer: { alignItems: 'center', paddingTop: 10 },
+  workerSimBadge: { backgroundColor: colors.danger, paddingHorizontal: 12, paddingVertical: 4, borderRadius: 99, marginBottom: 24 },
+  workerSimBadgeText: { color: colors.background, fontWeight: '800', fontSize: 10, letterSpacing: 1 },
+  workerSimHeader: { width: 80, height: 80, borderRadius: 40, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', marginBottom: 16 },
+  workerSimIconBox: { alignItems: 'center', justifyContent: 'center' },
+  workerSimTitle: { fontSize: 28, fontWeight: '900', color: colors.text, textAlign: 'center', letterSpacing: -1, lineHeight: 32 },
+  workerSimSub: { fontSize: 13, color: colors.textMuted, fontWeight: '600', marginTop: 8, marginBottom: 24 },
+  workerSimCard: { width: '100%', backgroundColor: colors.surface, padding: 20, borderRadius: 16, borderWidth: 1, borderColor: colors.borderLight },
+  workerSimRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
+  workerSimCardTitle: { fontSize: 16, fontWeight: '800', color: colors.text },
+  workerSimCardBody: { fontSize: 13, color: colors.textSecondary, lineHeight: 20, marginBottom: 20 },
+  workerSimMetricBox: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: colors.background, padding: 16, borderRadius: 12 },
+  workerSimMetric: { flex: 1, alignItems: 'center' },
+  workerSimMetricLabel: { fontSize: 10, color: colors.textMuted, fontWeight: '700', textTransform: 'uppercase', marginBottom: 4 },
+  workerSimMetricOld: { fontSize: 20, fontWeight: '600', color: colors.textMuted, textDecorationLine: 'line-through' },
+  workerSimMetricNew: { fontSize: 24, fontWeight: '900', color: colors.success },
 });
