@@ -137,21 +137,30 @@ export default function CoverageScreen() {
           </ClayCard>
         )}
 
-        {/* Tier Cards */}
-        {tiers.map((tier) => {
-          const config = TIER_CONFIG[tier.tier] || TIER_CONFIG.basic;
-          const isActive = activePolicy?.tier === tier.tier;
-          const coveragePct = Math.round(tier.coverage_pct * 100);
+        {/* Tier Cards Horizontal Swipe */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          snapToInterval={SCREEN_WIDTH * 0.85 + spacing.md}
+          decelerationRate="fast"
+          style={styles.horizontalScroll}
+          contentContainerStyle={styles.horizontalScrollContent}
+        >
+          {tiers.map((tier) => {
+            const config = TIER_CONFIG[tier.tier] || TIER_CONFIG.basic;
+            const isActive = activePolicy?.tier === tier.tier;
+            const coveragePct = Math.round(tier.coverage_pct * 100);
 
-          return (
-            <ClayCard
-              key={tier.tier}
-              variant={isActive ? 'elevated' : 'default'}
-              style={[
-                styles.tierCard,
-                isActive && { borderWidth: 2, borderColor: config.color },
-              ]}
-            >
+            return (
+              <ClayCard
+                key={tier.tier}
+                variant={isActive ? 'elevated' : 'default'}
+                style={[
+                  styles.tierCard,
+                  { width: SCREEN_WIDTH * 0.85 },
+                  isActive && { borderWidth: 2, borderColor: config.color },
+                ]}
+              >
               {/* Tier Header */}
               <View style={styles.tierHeader}>
                 <View style={[styles.tierIconBox, { backgroundColor: config.colorLight }]}>
@@ -216,6 +225,7 @@ export default function CoverageScreen() {
             </ClayCard>
           );
         })}
+        </ScrollView>
       </ScrollView>
 
       {/* Confirmation Modal */}
@@ -316,10 +326,18 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
 
+  // Horizontal Scroll
+  horizontalScroll: {
+    marginHorizontal: -spacing.lg,
+  },
+  horizontalScrollContent: {
+    paddingHorizontal: spacing.lg,
+  },
+
   // Tier Card
   tierCard: {
     padding: spacing.xl,
-    marginBottom: spacing.base,
+    marginRight: spacing.md,
   },
   tierHeader: {
     flexDirection: 'row',

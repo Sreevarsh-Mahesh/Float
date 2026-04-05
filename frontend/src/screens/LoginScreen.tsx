@@ -35,7 +35,19 @@ export default function LoginScreen({ navigation }: any) {
       });
       await storage.setItem('access_token', data.access_token);
       await storage.setItem('refresh_token', data.refresh_token);
-      navigation.replace('MainTabs');
+
+      // Check if the user has an active plan to route appropriately
+      try {
+        const policyRes = await apiClient.get('/policies/me');
+        if (policyRes.data && policyRes.data.id) {
+          navigation.replace('MainTabs');
+        } else {
+          navigation.replace('MainTabs', { screen: 'Coverage' });
+        }
+      } catch (err) {
+        // If there's no active policy (e.g. 404), go straight to Coverage
+        navigation.replace('MainTabs', { screen: 'Coverage' });
+      }
     } catch (e: any) {
       const detail = e.response?.data?.detail;
       setError(typeof detail === 'string' ? detail : 'Invalid email or password');
