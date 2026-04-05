@@ -11,10 +11,11 @@ import RegisterScreen from './src/screens/RegisterScreen';
 import DashboardScreen from './src/screens/DashboardScreen';
 import CoverageScreen from './src/screens/CoverageScreen';
 import ClaimsScreen from './src/screens/ClaimsScreen';
+import SimulationScreen from './src/screens/SimulationScreen';
 
 // Theme
 import { colors } from './src/theme/colors';
-import { LayoutDashboard, Shield, FileText } from 'lucide-react-native';
+import { LayoutDashboard, Shield, FileText, Beaker } from 'lucide-react-native';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -65,6 +66,13 @@ function MainTabs() {
         component={ClaimsScreen}
         options={{
           tabBarIcon: ({ color, size }) => <FileText color={color} size={size - 2} />,
+        }}
+      />
+      <Tab.Screen
+        name="Simulate"
+        component={SimulationScreen}
+        options={{
+          tabBarIcon: ({ color, size }) => <Beaker color={color} size={size - 2} />,
         }}
       />
     </Tab.Navigator>
