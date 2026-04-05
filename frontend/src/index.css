@@ -1,0 +1,49 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-neoBg text-neoText font-sans transition-colors duration-200 antialiased;
+  }
+}
+
+@layer components {
+  /* Neo-brutalist Base Button */
+  .neo-button {
+    @apply px-4 py-2 border-3 border-black font-bold uppercase transition-all duration-200 ease-in-out
+    shadow-[4px_4px_0_0_#000] hover:translate-y-1 hover:translate-x-1 hover:shadow-none focus:outline-none focus:ring-4 focus:ring-neoAccent;
+  }
+  
+  .neo-button-primary {
+    @apply neo-button bg-neoPrimary text-black active:bg-[#e60000];
+  }
+  
+  .neo-button-secondary {
+    @apply neo-button bg-neoSecondary text-white active:bg-[#0033cc];
+  }
+  
+  .neo-button-accent {
+    @apply neo-button bg-neoAccent text-black active:bg-[#e6cc00];
+  }
+
+  .neo-button-dark {
+    @apply neo-button bg-black text-white hover:bg-gray-900 border-black shadow-[4px_4px_0_0_#ffe600];
+  }
+
+  /* Neo-brutalist Base Input */
+  .neo-input {
+    @apply px-4 py-2 w-full border-3 border-black text-neoText focus:outline-none focus:ring-4 focus:ring-neoAccent transition-all ease-in-out placeholder-gray-500 shadow-[2px_2px_0_0_#000];
+  }
+  
+  /* Neo-brutalist Card */
+  .neo-card {
+    @apply border-3 border-black bg-white p-6 shadow-[6px_6px_0_0_#000] relative;
+  }
+
+  /* Base Typography */
+  h1 { @apply text-4xl md:text-5xl font-black uppercase tracking-tight; }
+  h2 { @apply text-3xl md:text-4xl font-bold uppercase tracking-tight; }
+  h3 { @apply text-2xl font-bold; }
+  p { @apply text-base font-medium; }
+}
